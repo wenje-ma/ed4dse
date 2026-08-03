@@ -1,0 +1,149 @@
+maximin.crit=function(design,r=2*ncol(design),surrogate=FALSE){
+  if(surrogate){
+    return(maximinObj(design,r))
+  }else{
+    return(maximinCrit(design))
+  }
+}
+maximinLHD=function(n,p,design=NULL,power=2*p,max.sa.iter=1e6,temp=0,decay=0.95,no.update.iter.max=100,num.passes=10,max.det.iter=1e6,method="full",scaled=TRUE){
+  if(is.null(design)){
+    design=randomLHD(n,p)
+  }
+  if(scaled){
+    design=design*n+0.5
+  }
+  if(temp==0){
+    avg=p*n*(n+1)/6
+    delta=(avg-p)^(-0.5)-(avg)^(-0.5)
+    temp=-delta/log(0.99)
+  }
+  if(method=="deterministic"){
+    result=maximinLHDOptimizer_cpp(design,power,num.passes,max.det.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="sa"){
+    result=maximinLHDOptimizer_cpp(design,power,num.passes,max.sa.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="full"){
+    result=maximinLHDOptimizer_cpp(design,power,num.passes,max.sa.iter,temp,decay,no.update.iter.max,"sa")
+    crit_hist=result$crit_hist
+    total_iter=result$total_iter
+    result=maximinLHDOptimizer_cpp(result$design,power,num.passes,max.det.iter,temp,decay,no.update.iter.max,"deterministic")
+    result$crit_hist=c(crit_hist,result$crit_hist)
+    result$total_iter=c(total_iter,result$total_iter)
+  }
+  result$design=(apply(result$design,2,rank)-0.5)/n
+  return(list(design=result$design,total.iter=result$total_iter,criterion=result$criterion,crit.hist=result$crit_hist))
+}
+maximin.augment=function(n,p,D.ini,candidate=NULL,r=2*p){
+  if(n<=nrow(D.ini)){
+    return(D.ini)
+  }
+  if(is.null(candidate)){
+    candidate=spacefillr::generate_sobol_set(100*n,p,seed=sample(10^6,1))
+  }
+  D=D.ini
+  dist.matrix=as.matrix(proxy::dist(candidate,D))
+  dist.matrix=1/(dist.matrix)^r
+  candidate.dist.sum=apply(dist.matrix,1,sum)
+  idx.selected=c()
+  n.new=n-nrow(D.ini)
+  for(i in 1:n.new){
+    idx=which.min(candidate.dist.sum)
+    idx.selected=c(idx.selected,idx)
+    D=rbind(D,candidate[idx,])
+    dist.update=1/apply((candidate-rep(1,nrow(candidate))%*%t(candidate[idx,]))^2,1,sum)^(r/2)
+    candidate.dist.sum=candidate.dist.sum+dist.update
+  }
+  return(D)
+}
+maximin.remove=function(D,n.remove,r=2*p){
+  if(n.remove<=0){
+    return(D)
+  }
+  n=nrow(D)
+  p=ncol(D)
+  dist.matrix=as.matrix(dist(D))
+  dist.matrix=1/(dist.matrix+diag(n))^r-diag(n)
+  dist.vec=apply(dist.matrix,1,sum)
+  idx.left=1:n
+  for(k in 1:(n.remove)){
+    idx=which.max(dist.vec)
+    dist.matrix=dist.matrix[-idx,-idx]
+    idx.left=idx.left[-idx]
+    dist.vec=apply(dist.matrix,1,sum)
+  }
+  return(D[idx.left,])
+}
+maximin.ini=function(n,p,factorial=TRUE){
+  level.decimal=n^(1/p)
+  level=floor(level.decimal)
+  if(n>((level+1)^p+level^p)/2){
+    level=level+1
+    D.ini=full.factorial(p,level)
+    D=maximin.remove(D.ini,n.remove=nrow(D.ini)-n)
+  }else{
+    D.ini=full.factorial(p,level)
+    if(factorial){
+      candidate=full.factorial(p,level+1)
+      D=maximin.augment(n,p,D.ini,candidate)
+    }else{
+      D=maximin.augment(n,p,D.ini)
+    }
+  }
+  return(D)
+}
+maximin.optim=function(D.ini,iteration=10,sa=FALSE,find.best.ini=FALSE){
+  n=nrow(D.ini)
+  p=ncol(D.ini)
+  power=2*p
+  optim.obj=function(x){
+    D=matrix(x,nrow=n,ncol=p)
+    d=distmatrix.maximin(D)
+    d_matrix=matrix(0,n,n)
+    d_matrix[lower.tri(d_matrix)]=d
+    d_matrix=d_matrix+t(d_matrix)
+    log_d=log(d)
+    Dmin=min(log_d)
+    fn=sum(exp(power*(Dmin-log_d)))
+    lfn=log(fn)-power*Dmin
+    fn=exp(lfn)
+    grad=D
+    for(row in 1:n){
+      A=sweep(D,2,D[row,],"-")
+      A=A[-row,]
+      grad[row,]=apply(A/d_matrix[row,-row]^(power+2),2,sum)
+    }
+    grad=power*grad/fn
+    return(list("objective"=lfn,"gradient"=c(grad)))
+  }
+  sa.objective=function(x){
+    D=matrix(x,nrow=n)
+    return(-maximin.crit(D))
+  }
+  if(find.best.ini){
+    D.ini.fac=maximin.ini(n,p)
+    D.ini.sobol=maximin.ini(n,p,FALSE)
+    if(identical(D.ini.fac,D.ini.sobol)){
+      D.fac=continuous.optim(D.ini.fac,optim.obj,NULL,iteration,sa,sa.objective)
+      D.sobol=D.fac
+    }else{
+      D.fac=continuous.optim(D.ini.fac,optim.obj,NULL,iteration,sa,sa.objective)
+      D.sobol=continuous.optim(D.ini.sobol,optim.obj,NULL,iteration,sa,sa.objective)
+    }
+    D.user=continuous.optim(D.ini,optim.obj,NULL,iteration,sa,sa.objective)
+    fac.crit=maximin.crit(D.fac)
+    sobol.crit=maximin.crit(D.sobol)
+    user.crit=maximin.crit(D.user)
+    max.idx=which.max(c(fac.crit,sobol.crit,user.crit))
+    if(max.idx==1){
+      design=D.fac
+    }else if(max.idx==2){
+      design=D.sobol
+    }else{
+      design=D.user
+    }
+    result=list(design=design,D.ini=list(D.ini,D.ini.fac,D.ini.sobol))
+  }else{
+    design=continuous.optim(D.ini,optim.obj,NULL,iteration,sa,sa.objective)
+    result=list(design=design,D.ini=D.ini)
+  }
+  return(result)
+}

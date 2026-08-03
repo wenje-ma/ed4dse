@@ -1,0 +1,105 @@
+sp=function(n,p,ini=NA,dist.str=NA,dist.param=vector("list",p),dist.samp=NA,scale.flg=TRUE,wts=NA,bd=NA,num.subsamp=ifelse(any(is.na(dist.samp)),max(10000,10*n),min(10000,nrow(dist.samp))),rnd.flg=ifelse(any(is.na(dist.samp)),TRUE,ifelse(num.subsamp<=10000,FALSE,TRUE)),iter.max=max(250,iter.min),iter.min=50,tol=1e-10,par.flg=TRUE,n0=n*p){
+  if(!any(is.na(dist.samp))&&any(is.na(dist.str))){
+    std.flg=F;
+  }else if(any(is.na(dist.samp))&&!any(is.na(dist.str))){
+    std.flg=T;
+  }else{
+    stop("Exactly one of 'dist.samp' or 'dist.str' should be NA.")
+  }
+  if(!rnd.flg){
+    num.subsamp=nrow(dist.samp)
+  }
+  if(any(is.na(wts))){
+    if(std.flg){
+      wts=rep(1.0,num.subsamp)
+    }else{
+      wts=rep(1.0,nrow(dist.samp))
+    }
+  }else{
+    if(std.flg){
+      stop("wts must be NA for standard distributions.")
+    }else{
+      wts=nrow(dist.samp)*wts;
+    }
+  }
+  if(par.flg){
+    num.cores=parallel::detectCores()
+  }else{
+    num.cores=1
+  }
+  if(std.flg){
+    dist.samp=matrix(-1,nrow=2,ncol=2)
+    dist.vec=c("uniform","normal","exponential","gamma","lognormal","student-t","weibull","cauchy","beta")
+    dist.ind=rep(NA,p)
+    for(i in 1:p){
+      dist.ind[i]=which(dist.vec==dist.str[i])
+      if(!any(dist.vec==dist.str[i])){
+        stop("Please provide a valid distribution!")
+      }
+    }
+    ini.flg=TRUE
+    if(any(is.na(ini))){
+      ini.flg=FALSE
+      if(p==1){
+        ini=matrix(randtoolbox::sobol(n,p,scrambling=T,seed=sample(1e6,1)),ncol=1)
+      }else{
+        ini=randtoolbox::sobol(n,p,scrambling=T,seed=sample(1e6,1))
+      }
+    }
+    if(any(is.na(bd))){
+      bd=matrix(NA,nrow=p,ncol=2,byrow=T)
+      bd.flg=FALSE
+    }else{
+      bd.flg=TRUE
+    }
+    for(i in 1:p){
+      if(is.null(dist.param[[i]])){
+        switch(dist.ind[i],"1"={dist.param[[i]]=c(0,1)},"2"={dist.param[[i]]=c(0,1)},"3"={dist.param[[i]]=c(1)},"4"={dist.param[[i]]=c(1,1)},"5"={dist.param[[i]]=c(0,1)},"6"={dist.param[[i]]=c(1)},"7"={dist.param[[i]]=c(1,1)},"8"={dist.param[[i]]=c(0,1)},"9"={dist.param[[i]]=c(2,4)})
+      }
+      if(!ini.flg){
+        switch(dist.ind[i],"1"={ini[,i]=stats::qunif(ini[,i],dist.param[[i]][1],dist.param[[i]][2])},"2"={ini[,i]=stats::qnorm(ini[,i],dist.param[[i]][1],dist.param[[i]][2])},"3"={ini[,i]=stats::qexp(ini[,i],dist.param[[i]][1])},"4"={ini[,i]=stats::qgamma(ini[,i],shape=dist.param[[i]][1],scale=dist.param[[i]][2])},"5"={ini[,i]=stats::qlnorm(ini[,i],dist.param[[i]][1],dist.param[[i]][2])},"6"={ini[,i]=stats::qt(ini[,i],df=dist.param[[i]][1])},"7"={ini[,i]=stats::qweibull(ini[,i],dist.param[[i]][1],dist.param[[i]][2])},"8"={ini[,i]=stats::qcauchy(ini[,i],dist.param[[i]][1],dist.param[[i]][2])},"9"={ini[,i]=stats::qbeta(ini[,i],dist.param[[i]][1],dist.param[[i]][2])})
+      }
+      if(!bd.flg){
+        switch(dist.ind[i],"1"={bd[i,]=c(0,1);},"2"={bd[i,]=c(-1e8,1e8);},"3"={bd[i,]=c(0,1e8);},"4"={bd[i,]=c(0,1e8);},"5"={bd[i,]=c(0,1e8);},"6"={bd[i,]=c(-1e8,1e8);},"7"={bd[i,]=c(0,1e8);},"8"={bd[i,]=c(-1e8,1e8);},"9"={bd[i,]=c(0,1);})
+      }
+    }
+    des=sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,FALSE,bd,num.subsamp,iter.max,iter.min,tol,num.cores,n0,wts,rnd.flg)
+  }else{
+    if(scale.flg==T){
+      sdpts=sqrt(apply(dist.samp,2,stats::var))
+      mmpts=apply(dist.samp,2,mean)
+      dist.samp=sweep(sweep(dist.samp,2,mmpts,"-"),2,sdpts,"/")
+    }
+    if(any(is.na(bd))){
+      bd=matrix(NA,nrow=p,ncol=2,byrow=T)
+      for(i in 1:p){
+        bd[i,]=range(dist.samp[,i])
+      }
+    }
+    if(any(duplicated(dist.samp))){
+      dist.samp=jitter(dist.samp)
+      for(i in 1:p){
+        dist.samp[,i]=pmin(pmax(dist.samp[,i],bd[i,1]),bd[i,2])
+      }
+    }
+    dist.ind=c(NA)
+    dist.param=list(NA)
+    if(any(is.na(ini))){
+      ini=matrix(jitter(dist.samp[sample(1:nrow(dist.samp),n,F),]),ncol=p)
+      for(i in 1:p){
+        ini[,i]=pmin(pmax(ini[,i],bd[i,1]),bd[i,2])
+      }
+    }else{
+      ini=sweep(sweep(ini,2,mmpts,"-"),2,sdpts,"/")
+    }
+    if(p==1){
+      ini=matrix(ini,ncol=1)
+    }
+    des=sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,TRUE,bd,num.subsamp,iter.max,iter.min,tol,num.cores,n0,wts,rnd.flg)
+    if(scale.flg==T){
+      ini=sweep(sweep(ini,2,sdpts,"*"),2,mmpts,"+")
+      des=sweep(sweep(des,2,sdpts,"*"),2,mmpts,"+")
+    }
+  }
+  return(list(sp=des,ini=ini,bd=bd))
+}

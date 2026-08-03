@@ -1,0 +1,85 @@
+maxpro.crit=function(design,delta=0){
+  return(maxproCrit(design,2,delta))
+}
+maxproLHD=function(n,p,design=NULL,max.sa.iter=1e6,temp=0,decay=0.95,no.update.iter.max=400,num.passes=10,max.det.iter=1e6,method="full",scaled=TRUE){
+  s=2
+  if(is.null(design)){
+    design=randomLHD(n,p)
+  }
+  if(scaled){
+    design=design*n+0.5
+  }
+  if(temp==0){
+    crit1=1/(n-1)
+    crit2=(1/((n-1)^(p-1)*(n-2)))^(1/p)
+    delta=crit2-crit1
+    temp=-delta/log(0.99)
+  }
+  if(method=="deterministic"){
+    result=maxproLHDOptimizer_cpp(design,s,num.passes,max.det.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="sa"){
+    result=maxproLHDOptimizer_cpp(design,s,num.passes,max.sa.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="full"){
+    result=maxproLHDOptimizer_cpp(design,s,num.passes,max.sa.iter,temp,decay,no.update.iter.max,"sa")
+    crit_hist=result$crit_hist
+    total_iter=result$total_iter
+    result=maxproLHDOptimizer_cpp(result$design,s,num.passes,max.det.iter,temp,decay,no.update.iter.max,"deterministic")
+    result$crit_hist=c(crit_hist,result$crit_hist)
+    result$total_iter=c(total_iter,result$total_iter)
+  }
+  result$design=(apply(result$design,2,rank)-0.5)/n
+  return(list(design=result$design,total.iter=result$total_iter,criterion=result$criterion,crit.hist=result$crit_hist))
+}
+maxpro.remove=function(D,n.remove,delta=0){
+  if(n.remove<=0){
+    return(D)
+  }
+  n=nrow(D)
+  p=ncol(D)
+  d=1/exp(distmatrix.maxpro(D,delta=delta))
+  dist.matrix=matrix(0,n,n)
+  dist.matrix[lower.tri(dist.matrix)]=d
+  dist.matrix=dist.matrix+t(dist.matrix)
+  dist.vec=apply(dist.matrix,1,sum)
+  idx.left=1:n
+  for(k in 1:(n.remove)){
+    idx=which.max(dist.vec)
+    dist.matrix=dist.matrix[-idx,-idx,drop=FALSE]
+    idx.left=idx.left[-idx]
+    if(length(idx.left)>1){
+      dist.vec=apply(dist.matrix,1,sum)
+    }
+  }
+  return(D[idx.left,,drop=FALSE])
+}
+maxpro.optim=function(D.ini,iteration=10){
+  sa=FALSE
+  n=nrow(D.ini)
+  p=ncol(D.ini)
+  s=2
+  optim.obj=function(x){
+    D=matrix(x,nrow=n,ncol=p)
+    d=exp(distmatrix.maxpro(D))
+    d_matrix=matrix(0,n,n)
+    d_matrix[lower.tri(d_matrix)]=d
+    d_matrix=d_matrix+t(d_matrix)
+    fn=sum(1/d)
+    lfn=log(fn)
+    I=diag(n)
+    diag(d_matrix)=rep(1,n)
+    A=B=D
+    for(j in 1:p){
+      A=t(outer(D[,j],D[,j],"-"))
+      diag(A)=rep(1,n)
+      B[,j]=diag((1/A-I)%*%(1/d_matrix-I))
+    }
+    grad=s*B/fn
+    return(list("objective"=lfn,"gradient"=grad))
+  }
+  sa.objective=function(x){
+    D=matrix(x,nrow=n)
+    return(maxpro.crit(D))
+  }
+  design=continuous.optim(D.ini,optim.obj,NULL,iteration,sa,sa.objective)
+  return(list(design=design,D.ini=D.ini))
+}

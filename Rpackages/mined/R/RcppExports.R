@@ -1,0 +1,9 @@
+SelectMinED=function(candidates,candlf,n,gamma=1,s=2){
+  .Call('_mined_SelectMinED',PACKAGE='mined',candidates,candlf,n,gamma,s)
+}
+Lattice=function(n,p){
+  .Call('_mined_Lattice',PACKAGE='mined',n,p)
+}
+mined=function(initial,logf,K_iter=0L){
+  .Call('_mined_mined',PACKAGE='mined',initial,logf,K_iter)
+}

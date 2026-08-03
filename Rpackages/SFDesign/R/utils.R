@@ -1,0 +1,26 @@
+randomLHD=function(n,p){
+  D=matrix(0,nrow=n,ncol=p)
+  for(j in 1:p){
+    seq=(seq_len(n)-0.5)/n
+    D[,j]=sample(seq,n)
+  }
+  return(D)
+}
+full.factorial=function(p,level){
+  if(level==1){
+    return(matrix(rep(0,p),ncol=p))
+  }
+  level_list=replicate(p,seq_len(level),simplify=FALSE)
+  design=as.matrix(expand.grid(level_list)-1)/(level-1)
+  colnames(design)=NULL
+  return(design)
+}
+distmatrix.maxpro=function(D,s=2,delta=0){
+  return(computeDistanceMatrixMaxPro(D,s,delta))
+}
+distmatrix.maximin=function(D){
+  return(computeDistanceMatrixMaximin(D))
+}
+distmatrix.uniform=function(D){
+  return(computeDistanceMatrixUniform(D))
+}

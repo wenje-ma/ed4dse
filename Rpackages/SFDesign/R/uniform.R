@@ -1,0 +1,89 @@
+uniform.crit=function(design){
+  return(uniformCrit(design))
+}
+uniformLHD=function(n,p,design=NULL,max.sa.iter=1e6,temp=0,decay=0.95,no.update.iter.max=400,num.passes=10,max.det.iter=1e6,method="full",scaled=TRUE){
+  if(is.null(design)){
+    design=randomLHD(n,p)
+  }
+  if(!scaled){
+    design=(apply(design,2,rank)-0.5)/n
+  }
+  if(temp==0){
+    crit1=sqrt(-(4/3)^p+(3/2)^p*(n^2-2)/n^2+(5/4)^p*2/n^2)
+    crit2=sqrt(-(4/3)^p+(3/2)^p)
+    delta=crit2-crit1
+    temp=-delta/log(0.99)
+  }
+  if(method=="deterministic"){
+    result=uniformLHDOptimizer_cpp(design,num.passes,max.det.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="sa"){
+    result=uniformLHDOptimizer_cpp(design,num.passes,max.sa.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="full"){
+    result=uniformLHDOptimizer_cpp(design,num.passes,max.sa.iter,temp,decay,no.update.iter.max,"sa")
+    crit_hist=result$crit_hist
+    result=uniformLHDOptimizer_cpp(result$design,num.passes,max.det.iter,temp,decay,no.update.iter.max,"deterministic")
+    result$crit_hist=c(crit_hist,result$crit_hist)
+  }
+  return(list(design=result$design,total.iter=result$total_iter,criterion=result$criterion,crit.hist=result$crit_hist))
+}
+uniform.optim=function(D.ini,iteration=10){
+  sa=FALSE
+  n=nrow(D.ini)
+  p=ncol(D.ini)
+  optim.obj=function(x){
+    D=matrix(x,nrow=n,ncol=p)
+    d=exp(distmatrix.uniform(D))
+    d_matrix=matrix(0,n,n)
+    d_matrix[lower.tri(d_matrix)]=d
+    d_matrix=d_matrix+t(d_matrix)
+    fn=sum(d)
+    grad=D
+    for(col in 1:p){
+      diff=outer(D[,col],D[,col],"-")
+      diff1=3/2-abs(diff)+diff^2
+      grad[,col]=apply(d_matrix/diff1*(-1*sign(diff)+2*diff),1,sum)
+    }
+    return(list("objective"=fn,"gradient"=c(grad)))
+  }
+  sa.objective=function(x){
+    D=matrix(x,nrow=n)
+    return(uniform.crit(D))
+  }
+  design=continuous.optim(D.ini,optim.obj,NULL,iteration,sa,sa.objective)
+  return(list(design=design,D.ini=D.ini))
+}
+uniform.discrete=function(t,p,levels,design=NULL,max.sa.iter=1e6,temp=0,decay=0.95,no.update.iter.max=400,num.passes=10,max.det.iter=1e6,method="full",scaled=TRUE){
+  lcm=primes::Rscm(levels)
+  n=t*lcm
+  if(is.null(design)){
+    design=matrix(0,nrow=n,ncol=p)
+    for(j in 1:p){
+      s=(rep(seq(from=1,to=levels[j]),n/levels[j])-0.5)/levels[j]
+      design[,j]=sample(s,n)
+    }
+  }
+  if(!scaled){
+    dense_rank=function(x){
+      match(x,sort(unique(x)))
+    }
+    design=t(t(apply(design,2,dense_rank)-0.5)/levels)
+  }
+  if(temp==0){
+    crit1=sqrt(-(4/3)^p+(3/2)^p*(n^2-2)/n^2+(5/4)^p*2/n^2)
+    crit2=sqrt(-(4/3)^p+(3/2)^p)
+    delta=crit2-crit1
+    temp=-delta/log(0.99)
+  }
+  if(method=="deterministic"){
+    result=uniformLHDOptimizer_cpp(design,num.passes,max.det.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="sa"){
+    result=uniformLHDOptimizer_cpp(design,num.passes,max.sa.iter,temp,decay,no.update.iter.max,method)
+  }else if(method=="full"){
+    result=uniformLHDOptimizer_cpp(design,num.passes,max.sa.iter,temp,decay,no.update.iter.max,"sa")
+    crit_hist=result$crit_hist
+    result=uniformLHDOptimizer_cpp(result$design,num.passes,max.det.iter,temp,decay,no.update.iter.max,"deterministic")
+    result$crit_hist=c(crit_hist,result$crit_hist)
+  }
+  result$design.int=t(t(result$design)*levels)+0.5
+  return(result)
+}

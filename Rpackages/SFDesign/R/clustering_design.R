@@ -1,0 +1,35 @@
+cluster.error=function(design,X=NULL,alpha=1){
+  p=ncol(design)
+  if(is.null(X)){
+    X=spacefillr::generate_sobol_set(1e5*p,p,sample(1e5,1))
+  }
+  return(clusterError(design,X,alpha))
+}
+clustering.design=function(n,p,X=NULL,D.ini=NULL,multi.start=1,alpha=1.0,Lloyd.iter.max=100,cen.iter.max=10,Lloyd.tol=1e-4,cen.tol=1e-4){
+  if(is.null(X)){
+    X=spacefillr::generate_sobol_set(1e5*p,p,sample(1e5,1))
+  }
+  if(multi.start==1){
+    if(is.null(D.ini)){
+      D.ini=pmax(pmin(jitter(spacefillr::generate_sobol_set(n,p,sample(1e5,1))),1),0)
+    }
+    result=cluster_based_design_cpp(X,D.ini,alpha=alpha,Lloyd_iter_max=Lloyd.iter.max,Lloyd_tol=Lloyd.tol,cen_iter_max=cen.iter.max,cen_tol=cen.tol)
+    return(list(design=result$design,cluster=result$cluster,cluster.error=result$cluster_error,total.iter=result$total_iter,crit.hist=result$crit_hist))
+  }else{
+    obj.best=.Machine$double.xmax
+    random_seed=sample(1e5,multi.start)
+    for(i in 1:multi.start){
+      D.ini=pmax(pmin(jitter(spacefillr::generate_sobol_set(n,p,random_seed[i])),1),0)
+      result=cluster_based_design_cpp(X,D.ini,alpha=alpha,Lloyd_iter_max=Lloyd.iter.max,Lloyd_tol=Lloyd.tol,cen_iter_max=cen.iter.max,cen_tol=cen.tol)
+      obj=result$cluster_error
+      if(obj<obj.best){
+        obj.best=obj
+        design=result$design
+        cluster=result$cluster
+        total.iter=result$total_iter
+        crit.hist=result$crit_hist
+      }
+    }
+    return(list(design=design,cluster=cluster,cluster.error=obj.best,total.iter=total.iter,crit.hist=crit.hist))
+  }
+}
