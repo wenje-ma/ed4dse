@@ -1,0 +1,50 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/1.5-plot.RData")){
+  set.seed(7)
+  n=6
+  x=rep(c(0,1),c(n/2,n/2))
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  y=f(x)+.1*rnorm(n)
+  l=-.25;u=1.25
+  test=seq(l,u,.001)
+  truey=f(test)
+  a.lm=lm(y~x)
+  pred1=predict.lm(a.lm,newdata=data.frame(x=test),interval="prediction")
+  mean1=pred1[,1];low1=pred1[,2];up1=pred1[,3]
+  library(rkriging)
+  a.gp=Fit.Kriging(x,y,interpolation=FALSE,fit=TRUE,model="OK",kernel.parameters=list(type="Gaussian"))
+  pred2=Predict.Kriging(a.gp,test)
+  mean2=pred2$mean;low2=pred2$mean-2*pred2$sd;up2=pred2$mean+2*pred2$sd
+  save(x,y,test,truey,mean1,low1,up1,mean2,low2,up2,file="data/1.5-plot.RData")
+}
+load("data/1.5-plot.RData")
+draw=function(){
+  par(mar=c(1,1,1,1))
+  par(mfrow=c(1,2))
+  l=-.25;u=1.25
+  plot(test,truey,type="l",xlim=c(l,u),ylim=c(-.5,1.5),main="Linear Regression",xlab="x",ylab="y")
+  points(x,y,pch=16,col="blue")
+  lines(test,mean1,col=3,lty=2)
+  polygon(c(test,rev(test)),c(low1,rev(up1)),col=adjustcolor("red",0.2),border="NA")
+  lines(test,low1,col="pink")
+  lines(test,up1,col="pink")
+  lines(test,mean1,col=3,lty=2)
+  legend("topleft",legend=c("truth","prediction"),lty=c(1,2),col=c(1,3),bty="n")
+  plot(test,truey,type="l",xlim=c(l,u),ylim=c(-.5,1.5),main="Gaussian Process Regression",xlab="x",ylab="y")
+  points(x,y,pch=16,col="blue")
+  lines(test,mean2,col=3,lty=2)
+  polygon(c(test,rev(test)),c(low2,rev(up2)),col=adjustcolor("red",0.2),border="NA")
+  lines(test,low2,col="pink")
+  lines(test,up2,col="pink")
+  lines(test,mean2,col=3,lty=2)
+  legend("topleft",legend=c("truth","prediction"),lty=c(1,2),col=c(1,3),bty="n")
+  par(mfrow=c(1,1))
+}
+pdf("../figures/1.5.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/1.5.svg",width=8,height=4)
+draw()
+dev.off()
