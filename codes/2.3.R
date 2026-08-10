@@ -1,0 +1,54 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/2.3-plot.RData")){
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  test=seq(0,1,length=301)
+  true=f(test)
+  n=10
+  D=((1:n)-1)/(n-1)
+  y=f(D)
+  E=as.matrix(dist(D))
+  predfun=function(theta){
+    R=exp(-(E/theta)^2)
+    coef=solve(R,y)
+    pred=test
+    for(i in 1:301){
+      pred[i]=0
+      for(j in 1:n) pred[i]=pred[i]+coef[j]*exp(-((test[i]-D[j])/theta)^2)
+    }
+    return(pred)
+  }
+  pred1=predfun(.01)
+  pred2=predfun(.1)
+  pred3=predfun(1)
+  MSCV=function(theta){
+    R=exp(-(E/theta)^2)
+    Rinv=solve(R)
+    cv=c(Rinv%*%y)/diag(Rinv)
+    val=log(mean(cv^2))
+    return(val)
+  }
+  theta=optimize(MSCV,c(.01,.2))$min
+  save(D,y,test,true,pred1,pred2,pred3,file="data/2.3-plot.RData")
+}
+load("data/2.3-plot.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main=expression(theta==0.01))
+  points(D,y,pch=16,col="blue")
+  lines(test,pred1,col=3)
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main=expression(theta==0.1))
+  points(D,y,pch=16,col="blue")
+  lines(test,pred2,col=3)
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main=expression(theta==1))
+  points(D,y,pch=16,col="blue")
+  lines(test,pred3,col=3)
+  legend("bottomright",legend=c("truth","prediction"),lty=c(2,1),col=c(1,3),bty="n")
+}
+pdf("../figures/2.3.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/2.3.svg",width=12,height=4)
+draw()
+dev.off()

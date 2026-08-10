@@ -1,0 +1,50 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/2.4-plot.RData")){
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  test=seq(0,1,length=301)
+  true=f(test)
+  n=10
+  D=((1:n)-1)/(n-1)
+  y=f(D)
+  E=as.matrix(dist(D))
+  theta=.08
+  R=exp(-(E/theta)^2)
+  basis=function(h) exp(-(h/theta)^2)
+  r=function(x) basis(x-D)
+  one=rep(1,n)
+  Rinv=solve(R+10^(-10)*diag(n))
+  mu=drop(t(one)%*%Rinv%*%y/(t(one)%*%Rinv%*%one))
+  coef=Rinv%*%(y-mu)
+  tau2=drop(1/n*t(y-mu)%*%Rinv%*%(y-mu))
+  f.var=function(x){
+    fac=1/(t(one)%*%Rinv%*%one)
+    val=tau2*(1-t(r(x))%*%Rinv%*%r(x)+fac*(1-t(r(x))%*%Rinv%*%one)^2)
+    return(val)
+  }
+  fhat=function(x) mu+t(r(x))%*%coef
+  N=301
+  pred=low=up=numeric(N)
+  for(i in 1:N){
+    pred[i]=fhat(test[i])
+    SD=sqrt(f.var(test[i]))
+    low[i]=pred[i]-2*SD
+    up[i]=pred[i]+2*SD
+  }
+  save(D,y,test,true,pred,low,up,file="data/2.4-plot.RData")
+}
+load("data/2.4-plot.RData")
+draw=function(){
+  plot(test,true,type="l",xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="Ordinary Kriging")
+  points(D,y,pch=16,col="blue")
+  lines(test,pred,col=3)
+  polygon(c(test,rev(test)),c(low,rev(up)),col=adjustcolor("red",alpha.f=0.2),border=NA)
+  legend("bottomright",legend=c("truth","prediction"),lty=c(2,1),col=c(1,3),bty="n")
+}
+pdf("../figures/2.4.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/2.4.svg",width=4,height=4)
+draw()
+dev.off()

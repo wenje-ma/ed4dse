@@ -1,0 +1,48 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/2.9-plot.RData")){
+  library(rkriging)
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  test=seq(0,1,length=301)
+  true=f(test)
+  set.seed(5)
+  n=10;re=2
+  D1=((1:n)-1)/(n-1)
+  D1=rep(D1,re)
+  e=rnorm(n*re,sd=.1)
+  y1=f(D1)+e
+  a=Fit.Kriging(D1,y1,interpolation=FALSE,kernel.parameters=list(type="Gaussian"))
+  pred1=Predict.Kriging(a,test)
+  mean1=pred1$mean;low1=mean1-2*pred1$sd;up1=mean1+2*pred1$sd
+  library(AlgDesign)
+  cand=data.frame(x=seq(-1,1,length=301))
+  a=optFederov(~1+x+I(x^2)+I(x^3)+I(x^4)+I(x^5)+I(x^6)+I(x^7)+I(x^8)+I(x^9),nTrials=n,data=cand,approximate=FALSE)
+  D2=rep(c(a$design[,1]),re)
+  D2=(D2+1)/2
+  e=rnorm(n*re,sd=.1)
+  y2=f(D2)+e
+  a=Fit.Kriging(D2,y2,interpolation=FALSE,kernel.parameters=list(type="Gaussian"))
+  pred2=Predict.Kriging(a,test)
+  mean2=pred2$mean;low2=mean2-2*pred2$sd;up2=mean2+2*pred2$sd
+  save(D1,y1,D2,y2,test,true,mean1,low1,up1,mean2,low2,up2,file="data/2.9-plot.RData")
+}
+load("data/2.9-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="GP Regression (Equi-spaced)")
+  points(D1,y1,pch=16,col="blue")
+  lines(test,mean1,col=3)
+  polygon(c(test,rev(test)),c(low1,rev(up1)),col=adjustcolor("red",0.2),border=NA)
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="GP Regression (D-optimal)")
+  points(D2,y2,pch=16,col="blue")
+  lines(test,mean2,col=3)
+  polygon(c(test,rev(test)),c(low2,rev(up2)),col=adjustcolor("red",0.2),border=NA)
+  legend("bottomright",legend=c("truth","prediction"),lty=c(2,1),col=c(1,3),bty="n")
+}
+pdf("../figures/2.9.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/2.9.svg",width=8,height=4)
+draw()
+dev.off()

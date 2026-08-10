@@ -1,0 +1,48 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/2.7-plot.RData")){
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  test=seq(0,1,length=301)
+  true=f(test)
+  n=10;r=2
+  set.seed(5)
+  library(AlgDesign)
+  cand=data.frame(x=seq(-1,1,length=301))
+  a=optFederov(~1+x+I(x^2)+I(x^3)+I(x^4)+I(x^5)+I(x^6)+I(x^7)+I(x^8)+I(x^9),nTrials=n,data=cand,approximate=FALSE)
+  D=rep(c(a$design[,1]),r)
+  D=(D+1)/2
+  e=rnorm(n*r,sd=.1)
+  y=f(D)+e
+  u=seq(0,1,length=301)
+  us=2*u-1
+  d=2*D-1
+  i=3
+  a.lm=lm(y~poly(d,i))
+  pred1=predict(a.lm,newdata=data.frame(d=us),interval="confidence")
+  mean1=pred1[,1];low1=pred1[,2];up1=pred1[,3]
+  i=8
+  a.lm=lm(y~poly(d,i))
+  pred2=predict(a.lm,newdata=data.frame(d=us),interval="confidence")
+  mean2=pred2[,1];low2=pred2[,2];up2=pred2[,3]
+  save(D,y,test,true,mean1,low1,up1,mean2,low2,up2,file="data/2.7-plot.RData")
+}
+load("data/2.7-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="3rd Degree (D-optimal)")
+  points(D,y,pch=16,col="blue")
+  lines(test,mean1,col=3)
+  polygon(c(test,rev(test)),c(low1,rev(up1)),col=adjustcolor("red",0.2),border=NA)
+  legend("bottomright",legend=c("truth","prediction"),lty=c(2,1),col=c(1,3),bty="n")
+  plot(test,true,type="l",lty=2,xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="8th Degree (D-optimal)")
+  points(D,y,pch=16,col="blue")
+  lines(test,mean2,col=3)
+  polygon(c(test,rev(test)),c(low2,rev(up2)),col=adjustcolor("red",0.2),border=NA)
+}
+pdf("../figures/2.7.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/2.7.svg",width=8,height=4)
+draw()
+dev.off()

@@ -1,0 +1,50 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/2.5-plot1.RData")){
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  N=301
+  test=seq(0,1,length=N)
+  true=f(test)
+  n=10
+  D=((1:n)-1)/(n-1)
+  y=f(D)
+  library(rkriging)
+  kernel=Get.Kernel(.08/sqrt(2),type="Gaussian")
+  a=Fit.Kriging(D,y,fit=FALSE,kernel=kernel)
+  tau2=Get.Kriging.Parameters(a)$nu2
+  pred=Predict.Kriging(a,test)
+  set.seed(1)
+  library(MASS)
+  S0=Evaluate.Kernel(kernel,test)
+  u1=mvrnorm(n=5,mu=rep(0,N),Sigma=tau2*S0)
+  R=Evaluate.Kernel(kernel,D)
+  L=chol(R+10^(-10)*diag(n))
+  library(pdist)
+  M=t(as.matrix(pdist(cbind(D),cbind(test))))
+  M=exp(-M^2/.08^2)
+  b=forwardsolve(t(L),t(M))
+  S=tau2*(S0-t(b)%*%b)
+  library(Matrix)
+  S=nearPD(S)$mat
+  me=pred$mean
+  set.seed(1)
+  u2=mvrnorm(n=5,mu=me,Sigma=S)
+  u1t=t(u1);u2t=t(u2)
+  save(D,y,test,true,u1t,u2t,file="data/2.5-plot1.RData")
+}
+load("data/2.5-plot1.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  matplot(test,u1t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Prior Distribution")
+  matplot(test,u1t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Data")
+  points(D,y,pch=16,col="blue")
+  matplot(test,u2t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Posterior Distribution")
+  points(D,y,pch=16,col="blue")
+}
+pdf("../figures/2.5.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/2.5.svg",width=12,height=4)
+draw()
+dev.off()
