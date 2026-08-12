@@ -1,0 +1,100 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/3.2-plot.RData")){
+  n=10
+  theta=.1
+  r=function(x,D,theta) exp(-((x-D)/theta)^2)
+  s=function(x,D,theta,L){
+    a=forwardsolve(t(L),r(x,D,theta))
+    return(sqrt(1-sum(a^2)))
+  }
+  imse=function(D,theta,n){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    L=chol(R+10^(-6)*diag(n))
+    r=function(x) exp(-((x-D)/theta)^2)
+    s=function(x){
+      a=forwardsolve(t(L),r(x))
+      return(1-sum(a^2))
+    }
+    val=integrate(Vectorize(s),0,1,abs.tol=10^(-10))$val
+    return(val)
+  }
+  mmse=function(D,theta,n){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    L=chol(R+10^(-6)*diag(n))
+    r=function(x) exp(-((x-D)/theta)^2)
+    s=function(x){
+      a=forwardsolve(t(L),r(x))
+      return(1-sum(a^2))
+    }
+    test=seq(0,1,length=1001)
+    val=apply(cbind(test),1,s)
+    return(max(val))
+  }
+  N=301
+  test=seq(0,1,length=N)
+  D=D1=((1:n)-1)/(n-1)
+  E=as.matrix(dist(D1))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa1=apply(cbind(test),1,function(xi) s(xi,D1,theta,L))
+  imse1=imse(D1,theta,n)
+  mmse1=mmse(D1,theta,n)
+  d=cos((2*(1:n)-1)/(2*n)*pi)
+  D=D2=(d+1)/2
+  E=as.matrix(dist(D2))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa2=apply(cbind(test),1,function(xi) s(xi,D2,theta,L))
+  imse2=imse(D2,theta,n)
+  mmse2=mmse(D2,theta,n)
+  D0=((1:n)-.5)/n
+  a=optim(D0,imse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D=D3=a$par
+  E=as.matrix(dist(D3))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa3=apply(cbind(test),1,function(xi) s(xi,D3,theta,L))
+  imse3=imse(D3,theta,n)
+  mmse3=mmse(D3,theta,n)
+  a=optim(D0,mmse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D=D4=a$par
+  E=as.matrix(dist(D4))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa4=apply(cbind(test),1,function(xi) s(xi,D4,theta,L))
+  imse4=imse(D4,theta,n)
+  mmse4=mmse(D4,theta,n)
+  IMSE1=imse1;IMSE2=imse2;IMSE3=imse3;IMSE4=imse4
+  MMSE1=mmse1;MMSE2=mmse2;MMSE3=mmse3;MMSE4=mmse4
+  save(D1,D2,D3,D4,test,sa1,sa2,sa3,sa4,theta,IMSE1,IMSE2,IMSE3,IMSE4,MMSE1,MMSE2,MMSE3,MMSE4,file="data/3.2-plot.RData")
+}
+load("data/3.2-plot.RData")
+draw=function(){
+  par(mfrow=c(2,2))
+  plot(test,sa1,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="Equi-spaced Design")
+  points(cbind(D1,0),pch=16,col="blue")
+  text(.2,.7,paste0("IMSE=",round(IMSE1,4)),col=2)
+  text(.8,.7,paste0("MMSE=",round(MMSE1,4)),col=3)
+  plot(test,sa2,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="Chebyshev Design")
+  points(cbind(D2,0),pch=16,col="blue")
+  text(.2,.7,paste0("IMSE=",round(IMSE2,4)),col=2)
+  text(.8,.7,paste0("MMSE=",round(MMSE2,4)),col=3)
+  plot(test,sa3,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="IMSE-optimal Design")
+  points(cbind(D3,0),pch=16,col="blue")
+  text(.2,.7,paste0("IMSE=",round(IMSE3,4)),col=2)
+  text(.8,.7,paste0("MMSE=",round(MMSE3,4)),col=3)
+  plot(test,sa4,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="MMSE-optimal Design")
+  points(cbind(D4,0),pch=16,col="blue")
+  text(.2,.7,paste0("IMSE=",round(IMSE4,4)),col=2)
+  text(.8,.7,paste0("MMSE=",round(MMSE4,4)),col=3)
+}
+pdf("../figures/3.2.pdf",width=8,height=8)
+draw()
+dev.off()
+svg("../figures/3.2.svg",width=8,height=8)
+draw()
+dev.off()

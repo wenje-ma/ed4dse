@@ -1,0 +1,102 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/3.4-plot.RData")){
+  set.seed(1)
+  n=10
+  theta=.1
+  N=301
+  test=seq(0,1,length=N)
+  imse=function(D,theta,n){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    L=chol(R+10^(-6)*diag(n))
+    r=function(x) exp(-((x-D)/theta)^2)
+    s=function(x){
+      a=forwardsolve(t(L),r(x))
+      return(1-sum(a^2))
+    }
+    val=integrate(Vectorize(s),0,1,abs.tol=10^(-10))$val
+    return(val)
+  }
+  mmse=function(D,theta,n){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    L=chol(R+10^(-6)*diag(n))
+    r=function(x) exp(-((x-D)/theta)^2)
+    s=function(x){
+      a=forwardsolve(t(L),r(x))
+      return(1-sum(a^2))
+    }
+    test=seq(0,1,length=1001)
+    val=apply(cbind(test),1,s)
+    return(max(val))
+  }
+  r=function(x,D,theta) exp(-((x-D)/theta)^2)
+  s=function(x,D,theta,L){
+    a=forwardsolve(t(L),r(x,D,theta))
+    return(sqrt(max(1-sum(a^2),0)))
+  }
+  ent=function(D,theta){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    val=det(R)
+    return(val)
+  }
+  negent=function(D,theta)-ent(D,theta)
+  D0=((1:n)-.5)/n
+  a=optim(D0,imse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D=D3=a$par
+  E=as.matrix(dist(D3))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa3=apply(cbind(test),1,function(xi) s(xi,D3,theta,L))
+  Ent3=ent(D3,theta)
+  IMSE3=imse(D3,theta,n)
+  MMSE3=mmse(D3,theta,n)
+  a=optim(D0,mmse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D=D4=a$par
+  E=as.matrix(dist(D4))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa4=apply(cbind(test),1,function(xi) s(xi,D4,theta,L))
+  Ent4=ent(D4,theta)
+  IMSE4=imse(D4,theta,n)
+  MMSE4=mmse(D4,theta,n)
+  D0=((1:n)-1)/(n-1)
+  a=optim(D0,negent,theta=theta,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D=D5=a$par
+  E=as.matrix(dist(D5))
+  R=exp(-(E/theta)^2)
+  L=chol(R+10^(-6)*diag(n))
+  sa5=apply(cbind(test),1,function(xi) s(xi,D5,theta,L))
+  Ent5=ent(D5,theta)
+  IMSE5=imse(D5,theta,n)
+  MMSE5=mmse(D5,theta,n)
+  save(D3,D4,D5,test,sa3,sa4,sa5,theta,Ent3,Ent4,Ent5,IMSE3,IMSE4,IMSE5,MMSE3,MMSE4,MMSE5,file="data/3.4-plot.RData")
+}
+load("data/3.4-plot.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  plot(test,sa3,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="IMSE-optimal Design")
+  points(cbind(D3,0),pch=16,col="blue")
+  text(.5,.7,paste0("Entropy=",round(Ent3,4)),col=4)
+  text(.5,.65,paste0("IMSE=",round(IMSE3,4)),col=2)
+  text(.5,.6,paste0("MMSE=",round(MMSE3,4)),col=3)
+  plot(test,sa4,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="MMSE-optimal Design")
+  points(cbind(D4,0),pch=16,col="blue")
+  text(.5,.7,paste0("Entropy=",round(Ent4,4)),col=4)
+  text(.5,.65,paste0("IMSE=",round(IMSE4,4)),col=2)
+  text(.5,.6,paste0("MMSE=",round(MMSE4,4)),col=3)
+  plot(test,sa5,type="l",xlab="x",ylab="RMSE",ylim=c(0,.7),main="Maximum Entropy Design")
+  points(cbind(D5,0),pch=16,col="blue")
+  text(.5,.7,paste0("Entropy=",round(Ent5,4)),col=4)
+  text(.5,.65,paste0("IMSE=",round(IMSE5,4)),col=2)
+  text(.5,.6,paste0("MMSE=",round(MMSE5,4)),col=3)
+}
+pdf("../figures/3.4.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/3.4.svg",width=12,height=4)
+draw()
+dev.off()

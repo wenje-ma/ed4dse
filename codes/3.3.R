@@ -1,0 +1,66 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/3.3-plot.RData")){
+  n=10
+  theta=.1
+  imse=function(D,theta,n){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    L=chol(R+10^(-6)*diag(n))
+    r=function(x) exp(-((x-D)/theta)^2)
+    s=function(x){
+      a=forwardsolve(t(L),r(x))
+      return(1-sum(a^2))
+    }
+    val=integrate(Vectorize(s),0,1,abs.tol=10^(-10))$val
+    return(val)
+  }
+  mmse=function(D,theta,n){
+    E=as.matrix(dist(D))
+    R=exp(-(E/theta)^2)
+    L=chol(R+10^(-6)*diag(n))
+    r=function(x) exp(-((x-D)/theta)^2)
+    s=function(x){
+      a=forwardsolve(t(L),r(x))
+      return(1-sum(a^2))
+    }
+    test=seq(0,1,length=1001)
+    val=apply(cbind(test),1,s)
+    return(max(val))
+  }
+  D1=((1:n)-1)/(n-1)
+  d=cos((2*(1:n)-1)/(2*n)*pi)
+  D2=(d+1)/2
+  D0=((1:n)-.5)/n
+  a=optim(D0,imse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D3=a$par
+  a=optim(D0,mmse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
+  D4=a$par
+  ev=seq(.01,.4,length=100)
+  IR=MR=matrix(0,nrow=100,ncol=4)
+  for(i in 1:100){
+    theta=ev[i]
+    IR[i,]=c(imse(D1,theta,n),imse(D2,theta,n),imse(D3,theta,n),imse(D4,theta,n))
+    MR[i,]=c(mmse(D1,theta,n),mmse(D2,theta,n),mmse(D3,theta,n),mmse(D4,theta,n))
+  }
+  IRR=sweep(IR,1,apply(IR,1,min),"/")
+  MRR=sweep(MR,1,apply(MR,1,min),"/")
+  save(ev,IR,MR,IRR,MRR,file="data/3.3-plot.RData")
+}
+load("data/3.3-plot.RData")
+draw=function(){
+  par(mar=c(5,5,4,2))
+  par(mfrow=c(2,2))
+  matplot(ev,IR,type="l",xlab=expression(theta),ylab="IMSE",main="IMSE")
+  legend("topright",legend=c("equi-spaced","Chebyshev","IMSE-optimal","MMSE-optimal"),lty=1:4,col=1:4,bty="n")
+  matplot(ev,MR,type="l",xlab=expression(theta),ylab="MMSE",main="MMSE")
+  matplot(ev,1/IRR,type="l",xlab=expression(theta),ylab="RE",main="Relative Efficiency (IMSE)")
+  matplot(ev,1/MRR,type="l",xlab=expression(theta),ylab="RE",main="Relative Efficiency (MMSE)")
+}
+pdf("../figures/3.3.pdf",width=8,height=8)
+draw()
+dev.off()
+svg("../figures/3.3.svg",width=8,height=8)
+draw()
+dev.off()
