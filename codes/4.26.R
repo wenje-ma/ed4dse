@@ -1,0 +1,150 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.26-plot.RData")){
+  constraint=function(x){
+    c1=(x[1]-sqrt(50*(x[2]-0.52)^2+2)+1)
+    c2=(sqrt(120*(x[2]-0.48)^2+1)-0.75-x[1])
+    c3=(0.65^2-x[1]^2-x[2]^2)
+    return(c(c1,c2,c3))
+  }
+  x1=x2=matrix(NA,nrow=3,ncol=1001)
+  x2.seq=seq(0,1,length.out=1001)
+  x2[1,]=x2.seq
+  x1[1,]=sqrt(50*(x2.seq-0.52)^2+2)-1
+  x2[2,]=x2.seq
+  x1[2,]=sqrt(120*(x2.seq-0.48)^2+1)-0.75
+  x2[3,]=x2.seq
+  x1[3,]=sqrt(0.65^2-x2.seq^2)
+  contour=list(x1=x1,x2=x2)
+  logdis=function(x,s=2){
+    if(s>0) length(x)/s*log(sum(abs(x)^s)) else sum(log(abs(x)))
+  }
+  mined.seq=function(n,cand,cand.lf,s=2,return.obj=F){
+    N=nrow(cand)
+    if(n>N) stop(message("Not enough candidate points!"))
+    p=ncol(cand)
+    idx=which.max(cand.lf)
+    xi=c(idx)
+    val=NULL
+    for(i in 2:n){
+      cand.dist=cand-rep(1,N)%*%t(cand[idx,])
+      val=cbind(val,0.5*cand.lf[idx]+0.5*cand.lf+apply(cand.dist,1,logdis,s=s))
+      idx=which.max(apply(val,1,min))
+      xi=c(xi,idx)
+    }
+    if(return.obj){
+      val=val[xi,]
+      val=cbind(val,c(val[n,],-Inf))
+      obj=min(val[upper.tri(val)])
+      return(list(idx=xi,obj=obj))
+    }
+    return(xi)
+  }
+  comined=function(n,p,tau,constraint,n.aug,auto.scale=F,s=2,visualization=F,visualization.params=list()){
+    samp=Lattice(n*n.aug,p)
+    min.dist=min(dist(samp))
+    min.ddist=Inf
+    for(i in 1:p){
+      ddist=min(dist(samp[,i]))
+      if(ddist<min.ddist) min.ddist=ddist
+    }
+    samp.gval=matrix(t(apply(samp,1,constraint)),nrow=nrow(samp))
+    scale=rep(1,ncol(samp.gval))
+    if(auto.scale) scale=apply(samp.gval,2,mad,center=0)
+    samp.lf=apply(samp.gval,1,function(x) sum(pnorm(-tau[2]*x/scale,log.p=TRUE)))
+    med.op=mined.seq(n,samp,samp.lf,s=s,return.obj=TRUE)
+    samp.med=samp[med.op$idx,]
+    if(visualization){
+      vparams=list(unit.scale=FALSE,contour=NULL)
+      vparams[(nm<-names(visualization.params))]=visualization.params
+      xlim=ylim=NULL
+      if(vparams$unit.scale) xlim=ylim=c(0,1)
+      plot(samp,col="green",pch=18,xlim=xlim,ylim=ylim,xlab="",ylab="")
+      points(samp.med,col="red",pch=16)
+      if(!is.null(vparams$contour)){
+        contours=vparams$contour
+        for(l in 1:nrow(contour$x1)){
+          lines(contour$x1[l,],contour$x2[l,],lty=2)
+        }
+      }
+    }
+    for(k in 3:length(tau)){
+      min.dist=min.dist/2
+      min.ddist=min.ddist/2
+      no.decimal=attr(regexpr("(?<=\\.)0+",format(min.ddist,scientific=F),perl=TRUE),"match.length")+1
+      samp.med.dist=as.matrix(dist(samp.med))
+      samp.aug=NULL
+      for(i in 1:n){
+        nn.idx=order(samp.med.dist[i,])[2:(n.aug+1)]
+        samp.aug=rbind(samp.aug,0.5*(samp.med[nn.idx,]+rep(1,n.aug)%*%t(samp.med[i,])))
+        samp.aug=rbind(samp.aug,0.5*(3*samp.med[nn.idx,]-rep(1,n.aug)%*%t(samp.med[i,])))
+      }
+      samp.aug.rep=round(samp.aug,digits=no.decimal)
+      samp.aug.dp=duplicated(samp.aug.rep)
+      samp.aug=samp.aug[!samp.aug.dp,]
+      samp.aug.out=apply(samp.aug,1,function(x)(any(x<0)|any(x>1)))
+      samp.aug=samp.aug[!samp.aug.out,]
+      no.aug=nrow(samp.aug)
+      samp.rep=rbind(samp.aug,samp)
+      samp.rep=round(samp.rep,digits=no.decimal)
+      samp.rep.dp=duplicated(samp.rep,fromLast=TRUE)
+      samp.aug=samp.aug[!(samp.rep.dp[1:no.aug]),]
+      if(nrow(samp.aug)>0){
+        samp.aug.gval=matrix(t(apply(samp.aug,1,constraint)),nrow=nrow(samp.aug))
+        samp=rbind(samp,samp.aug)
+        samp.gval=rbind(samp.gval,samp.aug.gval)
+      }
+      if(auto.scale) scale=apply(samp.gval,2,mad,center=0)
+      samp.lf=apply(samp.gval,1,function(x) sum(pnorm(-tau[k]*x/scale,log.p=TRUE)))
+      if(s==0){
+        hp=floor(p/2)
+        nl=sqrt((min.dist^2-min.ddist^2*hp)/(p-hp))
+        min.logdis=logdis(c(rep(min.ddist,hp),rep(nl,(p-hp))),s=s)
+      }else{
+        min.logdis=logdis(rep(min.dist/sqrt(p),p),s=s)
+      }
+      samp.lf.cv=sort(samp.lf,decreasing=TRUE)[n]+2.5*min.logdis
+      samp.cand.idx=(samp.lf>samp.lf.cv)
+      samp.cand=samp[samp.cand.idx,]
+      samp.cand.lf=samp.lf[samp.cand.idx]
+      med.op=mined.seq(n,samp.cand,samp.cand.lf,s=s,return.obj=TRUE)
+      samp.med=samp.cand[med.op$idx,]
+      if(visualization){
+        plot(samp.cand,col="green",pch=18,xlim=xlim,ylim=ylim,xlab="",ylab="")
+        points(samp.med,col="red",pch=16)
+        if(!is.null(vparams$contour)){
+          contour=vparams$contour
+          for(l in 1:nrow(contour$x1)){
+            lines(contour$x1[l,],contour$x2[l,],lty=2)
+          }
+        }
+      }
+    }
+    samp.med.lf=samp.cand.lf[med.op$idx]
+    feasible.idx=!(apply(samp.gval,1,function(x) any(x>0)))
+    return(list(med=samp.med,med.lf=samp.med.lf,cand=samp,cand.lf=samp.lf,cand.min.dist=min.dist,cand.min.ddist=min.ddist,feasible.idx=feasible.idx))
+  }
+  library(mined)
+  set.seed(20210329)
+  tau=c(0,exp(c(1:7)),1e6)
+  comined.output=comined(n=53,p=2,tau=tau,constraint=constraint,n.aug=5,auto.scale=F,s=2,visualization=F,visualization.params=list(unit.scale=TRUE,contour=contour))
+  cand=comined.output$cand
+  cand.feasible=comined.output$cand[comined.output$feasible.idx,]
+  feasible=cand.feasible
+  save(x1,x2,cand,feasible,file="data/4.26-plot.RData")
+}
+load("data/4.26-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(cand,col="blue",pch=16,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="full candidate set")
+  for(i in 1:3) lines(x1[i,],x2[i,],col=2)
+  plot(feasible,col="green",pch=16,xlim=c(.3,.8),ylim=c(.35,.55),xlab=expression(x[1]),ylab=expression(x[2]),main="feasible candidate set")
+  for(i in 1:3) lines(x1[i,],x2[i,],col=2)
+}
+pdf("../figures/4.26.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/4.26.svg",width=8,height=4)
+draw()
+dev.off()

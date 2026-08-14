@@ -1,0 +1,44 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.10-plot.RData")){
+  p=2;n=7
+  library(MaxPro)
+  a=MaxPro(MaxProLHD(n,p)$Design)
+  D1=a$Design
+  p=2;n=20
+  library(SFDesign)
+  set.seed(10)
+  D2=maxpro.optim(maxproLHD(n,p)$design,iteration=100)$design
+  maxpro.crit(D2)
+  n1=7;n2=20
+  save(D1,D2,n1,n2,file="data/4.10-plot.RData")
+}
+load("data/4.10-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(D1,pch=16,bty="n",col="blue",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="MaxPro(7,2)",asp=1)
+  d11=sort(D1[,1])
+  l11=c(0,(d11[-1]+d11[-n1])/2,1)
+  d12=sort(D1[,2])
+  l12=c(0,(d12[-1]+d12[-n1])/2,1)
+  for(i in 1:(n1+1)){
+    segments(l11[i],0,l11[i],1)
+    segments(0,l12[i],1,l12[i])
+  }
+  plot(D2,pch=16,bty="n",col="blue",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="MaxPro(20,2)",asp=1)
+  d21=sort(D2[,1])
+  l21=c(0,(d21[-1]+d21[-n2])/2,1)
+  d22=sort(D2[,2])
+  l22=c(0,(d22[-1]+d22[-n2])/2,1)
+  for(i in 1:(n2+1)){
+    segments(l21[i],0,l21[i],1)
+    segments(0,l22[i],1,l22[i])
+  }
+}
+pdf("../figures/4.10.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/4.10.svg",width=8,height=4)
+draw()
+dev.off()

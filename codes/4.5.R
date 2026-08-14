@@ -1,0 +1,30 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.5-plot.RData")){
+  p=2;n=7
+  set.seed(1)
+  library(SFDesign)
+  D0=matrix(c(.5,.5),nrow=1,ncol=p)
+  CAND=full.factorial(p=2,level=5)
+  D1=maximin.augment(n=7,p=2,D.ini=D0,candidate=CAND)
+  min(dist(D1))/2
+  D2=maximin.augment(n=13,p=2,D.ini=D1,candidate=CAND)
+  min(dist(D2))/2
+  D2_choose=D2[8:13,]
+  save(D1,D2_choose,file="data/4.5-plot.RData")
+}
+load("data/4.5-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(D1,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue",asp=1)
+  plot(D1,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue",asp=1)
+  points(D2_choose,pch=4,col="red")
+  par(mfrow=c(1,1))
+}
+pdf("../figures/4.5.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/4.5.svg",width=8,height=4)
+draw()
+dev.off()

@@ -1,0 +1,29 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.13-plot.RData")){
+  p=6;n=64
+  set.seed(1)
+  library(SFDesign)
+  D0=maximin.optim(maximinLHD(n,p)$design,find.best.ini=TRUE)$design
+  D1=maxpro.optim(maxproLHD(n,p)$design)$design
+  d0=c(dist(D0))
+  d1=c(dist(D1))
+  library(fitdistrplus)
+  a=fitdist(d1/sqrt(p),"beta")
+  shape1=a$estimate[1];shape2=a$estimate[2]
+  save(d0,d1,shape1,shape2,p=p,file="data/4.13-plot.RData")
+}
+load("data/4.13-plot.RData")
+draw=function(){
+  hist(d0,prob=TRUE,xlim=c(0,sqrt(p)),col=rgb(1,0,0,1/4),xlab="pairwise distance",ylab="Density",main="distance distribution")
+  hist(d1,prob=TRUE,col=rgb(0,0,1,1/4),breaks=30,add=TRUE)
+  curve(dbeta(x/sqrt(p),shape1,shape2)/sqrt(p),from=0,to=sqrt(p),add=TRUE,col=3)
+  legend("topleft",legend=c("Maximin","MaxPro","Beta(10.1,12.7)"),col=c(rgb(1,0,0,1/4),rgb(0,0,1,1/4),3),lty=c(1,1,1),bty="n")
+}
+pdf("../figures/4.13.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/4.13.svg",width=4,height=4)
+draw()
+dev.off()

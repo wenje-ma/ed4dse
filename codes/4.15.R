@@ -1,0 +1,33 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.15-plot.RData")){
+  constraint=function(x){
+    c1=(x[1]-sqrt(50*(x[2]-0.52)^2+2)+1)
+    c2=(sqrt(120*(x[2]-0.48)^2+1)-0.75-x[1])
+    c3=(0.65^2-x[1]^2-x[2]^2)
+    return(c(c1,c2,c3))
+  }
+  x1=x2=matrix(NA,nrow=3,ncol=1001)
+  x2.seq=seq(0,1,length.out=1001)
+  x2[1,]=x2.seq
+  x1[1,]=sqrt(50*(x2.seq-0.52)^2+2)-1
+  x2[2,]=x2.seq
+  x1[2,]=sqrt(120*(x2.seq-0.48)^2+1)-0.75
+  x2[3,]=x2.seq
+  x1[3,]=sqrt(0.65^2-x2.seq^2)
+  contour=list(x1=x1,x2=x2)
+  save(x1,x2,file="data/4.15-plot.RData")
+}
+load("data/4.15-plot.RData")
+draw=function(){
+  plot(NULL,type="n",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="feasible region")
+  for(i in 1:3) lines(x1[i,],x2[i,])
+  polygon(x=c(x1[1,383:536],x1[2,536:529],x1[3,529:412],x1[2,412:383]),y=c(x2[1,383:536],x2[2,536:529],x2[3,529:412],x2[2,412:383]),col="red")
+}
+pdf("../figures/4.15.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/4.15.svg",width=4,height=4)
+draw()
+dev.off()

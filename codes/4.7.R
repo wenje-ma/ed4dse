@@ -1,0 +1,39 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.7-plot.RData")){
+  p=2;n=4
+  library(SFDesign)
+  D1=maximinLHD(n,p)$design
+  D2=(cbind(1:n,1:n)-.5)/n
+  save(D1,D2,n,file="data/4.7-plot.RData")
+}
+load("data/4.7-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(D1,pch=16,xaxt="n",yaxt="n",bty="n",col="blue",xlim=c(-.1,1.1),ylim=c(-.1,1.1),xlab=expression(x[1]),ylab=expression(x[2]))
+  axis(1,at=seq(0,1,by=.25))
+  axis(2,at=seq(0,1,by=.25))
+  for(i in 1:(n+1)){
+    segments((i-1)/n,0,(i-1)/n,1)
+    segments(0,(i-1)/n,1,(i-1)/n)
+  }
+  points(cbind(D1[,1],-.15),col=2,pch=16)
+  points(cbind(-.15,D1[,2]),col=2,pch=16)
+  plot(D2,pch=16,xaxt="n",yaxt="n",bty="n",col="blue",xlim=c(-.1,1.1),ylim=c(-.1,1.1),xlab=expression(x[1]),ylab=expression(x[2]))
+  axis(1,at=seq(0,1,by=.25))
+  axis(2,at=seq(0,1,by=.25))
+  for(i in 1:(n+1)){
+    segments((i-1)/n,0,(i-1)/n,1)
+    segments(0,(i-1)/n,1,(i-1)/n)
+  }
+  points(cbind(D2[,1],-.15),col=2,pch=16)
+  points(cbind(-.15,D2[,2]),col=2,pch=16)
+  par(mfrow=c(1,1))
+}
+pdf("../figures/4.7.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/4.7.svg",width=8,height=4)
+draw()
+dev.off()

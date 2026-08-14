@@ -1,0 +1,139 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.27-plot.RData")){
+  f=function(u){
+    x=u[1:2]
+    M=1/u[3]
+    term1=(1-exp(-1/(2*x[2])))*(2300*x[1]^3+1900*x[1]^2+2092*x[1]+60)/(100*x[1]^3+500*x[1]^2+4*x[1]+20)
+    term2=16*exp(-1.4*x[1])*cos(3.5*pi*x[2])
+    val=term1+term2*u[3]
+    return(val)
+  }
+  p=2
+  Mt=2
+  Mb=16
+  lam=Mb/Mt
+  nb=50
+  nu=(nb*lam-1)/(lam*(nb-1))
+  n=1+round(log(lam)/log(nu))
+  u=((1:n)-1)/(n-1)
+  M=Mt*(Mb/Mt)^u
+  h=1/M
+  h=sort(h/max(h))
+  set.seed(1)
+  library(SFDesign)
+  library(MaxPro)
+  D=maxpro.optim(maxproLHD(n,p+1)$design)$design
+  D=D[order(D[,3]),]
+  D[,3]=h
+  MaxProMeasure(D)
+  a=MaxProQQ(D)
+  a$measure
+  D=a$Design
+  y=apply(D,1,f)
+  test=MaxProAugment(ExistDesign=D[,1:p],CandDesign=CandPoints(100*n,p),nNew=100)$Design[-(1:n),]
+  true=apply(cbind(test,0),1,f)
+  OKfit=function(D,y,ini,nug=10^(-6)){
+    n=length(y)
+    if(!is.matrix(D)) D=matrix(D,ncol=1)
+    p=dim(D)[2]-1
+    r=function(x,theta){
+      theta0=theta[1:p]
+      theta1=theta[(p+1):(2*p)]
+      gam=theta[2*p+1]
+      lam=theta[2*p+2]
+      if(p>1){
+        A=sweep(D[,1:p],2,x[1:p],"-")
+        g0=exp(-apply((A%*%diag(1/theta0))^2,1,sum))
+        g1=exp(-apply((A%*%diag(1/theta1))^2,1,sum))
+        b=exp(-((D[,p+1]-x[p+1])/gam)^2)-exp(-((D[,p+1])/gam)^2)-exp(-((x[p+1])/gam)^2)+1
+        g=g0+lam*g1*b
+      }else{
+        g0=exp(-((D[,1]-x[1])/theta0)^2)
+        g1=exp(-((D[,1]-x[1])/theta1)^2)
+        b=pmin(D[,2],x[2])
+        g=g0+lam*g1*b
+      }
+      return(g)
+    }
+    ML=function(theta){
+      R=apply(D,1,r,theta)+nug*diag(n)
+      L=chol(R)
+      a=forwardsolve(t(L),one)
+      b=forwardsolve(t(L),y)
+      mu=sum(a*b)/sum(a^2)
+      nu2=1/n*sum((b-mu*a)^2)
+      nu2=max(nu2,10^(-15))
+      val=log(nu2)+2*mean(log(diag(L)))
+      return(val)
+    }
+    one=rep(1,n)
+    a.opt=optim(ini,ML,lower=ini/10,upper=10*ini,method="L-BFGS-B",control=list("maxit"=100))
+    theta=a.opt$par
+    R=apply(D,1,r,theta)+nug*diag(n)
+    L=chol(R)
+    a=forwardsolve(t(L),one)
+    b=forwardsolve(t(L),y)
+    mu=sum(a*b)/sum(a^2)
+    nu2=1/n*sum((b-mu*a)^2)
+    return(list(mu=mu,nu2=nu2,theta=theta,L=L,a=a,b=b,D=D))
+  }
+  OKpredict=function(obj,new){
+    mu=obj$mu
+    nu2=obj$nu2
+    theta=obj$theta
+    L=obj$L
+    a=obj$a
+    b=obj$b
+    D=obj$D
+    r=function(x,theta){
+      theta0=theta[1:p]
+      theta1=theta[(p+1):(2*p)]
+      gam=theta[2*p+1]
+      lam=theta[2*p+2]
+      if(p>1){
+        A=sweep(D[,1:p],2,x[1:p],"-")
+        g0=exp(-apply((A%*%diag(1/theta0))^2,1,sum))
+        g1=exp(-apply((A%*%diag(1/theta1))^2,1,sum))
+        b=exp(-((D[,p+1]-x[p+1])/gam)^2)-exp(-((D[,p+1])/gam)^2)-exp(-((x[p+1])/gam)^2)+1
+        g=g0+lam*g1*b
+      }else{
+        g0=exp(-((D[,1]-x[1])/theta0)^2)
+        g1=exp(-((D[,1]-x[1])/theta1)^2)
+        b=pmin(D[,2],x[2])
+        g=g0+lam*g1*b
+      }
+      return(g)
+    }
+    ok=function(x,para){
+      d=forwardsolve(t(L),r(x,para))
+      t1=mu+sum(d*(b-mu*a))
+      t2=sqrt(nu2)*sqrt(max(1-sum(d^2)+(1-sum(d*a))^2/sum(a^2),0))
+      return(c(t1,t2))
+    }
+    pred=apply(cbind(new),1,ok,para=theta)
+    return(list(mean=pred[1,],sd=pred[2,]))
+  }
+  a=OKfit(D,y,ini=rep(1,2*p+2))
+  pred=OKpredict(a,cbind(test,0))$mean
+  rmse=sqrt(mean((pred-true)^2))
+  D1=maxpro.optim(maxproLHD(nb,p)$design)$design
+  y1=apply(cbind(D1,1/Mb),1,f)
+  library(rkriging)
+  a1=Fit.Kriging(D1,y1,kernel.parameters=list(type="Gaussian"))
+  pred1=Predict.Kriging(a1,test)$mean
+  rmse1=sqrt(mean((pred1-true)^2))
+  save(D,file="data/4.27-plot.RData")
+}
+load("data/4.27-plot.RData")
+draw=function(){
+  library(car)
+  scatterplotMatrix(D,diagonal=list(method="histogram",breaks=15),smooth=FALSE,regLine=FALSE,pch=16,var.labels=c(expression(x[1]),expression(x[2]),"t"))
+}
+pdf("../figures/4.27.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/4.27.svg",width=4,height=4)
+draw()
+dev.off()

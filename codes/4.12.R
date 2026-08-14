@@ -1,0 +1,45 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.12-plot.RData")){
+  p=5;n=50
+  set.seed(2)
+  library(SFDesign)
+  D=maxpro.optim(maxproLHD(n,p)$design)$design
+  D0=maximinLHD(n,p)$design
+  library(gtools)
+  min_mindist=function(M){
+    n=dim(M)[1]
+    p=dim(M)[2]
+    a=rep(p,(p-1))
+    for(j in 1:(p-1)){
+      comb=combinations(p,j)
+      k=dim(comb)[1]
+      temp=mat.or.vec(k,1)
+      for(i in 1:k){
+        temp[i]=min(dist(M[,comb[i,]]))
+      }
+      a[j]=min(temp)
+    }
+    minfull=min(dist(M))
+    return(c(a,minfull))
+  }
+  d1=min_mindist(D)
+  d2=min_mindist(D0)
+  save(d1,d2,p,file="data/4.12-plot.RData")
+}
+load("data/4.12-plot.RData")
+draw=function(){
+  matplot(1:p,cbind(d1,d2),type="pp",pch=c(1,4),col=c(4,2),ylim=c(0,.55),bty="n",axes=FALSE,xlab="projection dimension",ylab="minimum of minimum distances")
+  axis(1,1:p)
+  axis(2,seq(0,.52,.1))
+  lines(d1,col=4)
+  lines(d2,lty=2,col=2)
+  legend("topleft",c("MaxPro","MmLHD"),pch=c(1,4),lty=c(1,2),bty="n",col=c(4,2))
+}
+pdf("../figures/4.12.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/4.12.svg",width=4,height=4)
+draw()
+dev.off()

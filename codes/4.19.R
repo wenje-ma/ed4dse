@@ -1,0 +1,76 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.19-plot.RData")){
+  library(SFDesign)
+  library(MaxPro)
+  for(k in 1:20){
+    set.seed(k)
+    shared_nested.ini=maxpro.optim(maxproLHD(30,6+2)$design)$design
+    branch=rep(c(0,1),c(15,15))
+    ini=cbind(shared_nested.ini,branch)
+    D0=MaxProQQ(ini,p_nom=1)$Design
+    na_nested=matrix(NA,nrow=15,ncol=2)
+    val=matrix(Inf,nrow=8,ncol=8)
+    D1=D0[1:15,-9]
+    D2=D0[16:30,-9]
+    for(i in 1:7){
+      for(j in(i+1):8){
+        B=D2
+        B[,c(i,j)]=na_nested
+        A=D1
+        A[,c(i,j)]=(apply(D1[,c(i,j)],2,rank)-.5)/15
+        A[,c(i,j)]=maxpro.optim(A[,c(i,j)])$design
+        D=cbind(rbind(A,B),branch)
+        val[i,j]=MaxProMeasure(D[,-c(i,j)])+MaxProMeasure(D[1:15,-9])+MaxProMeasure(D[16:30,-c(9,i,j)])
+      }
+    }
+    print(c(k,min(val)))
+  }
+  opt.seed=12
+  set.seed(opt.seed)
+  shared_nested.ini=maxpro.optim(maxproLHD(30,6+2)$design)$design
+  branch=rep(c(0,1),c(15,15))
+  ini=cbind(shared_nested.ini,branch)
+  D0=MaxProQQ(ini,p_nom=1)$Design
+  na_nested=matrix(NA,nrow=15,ncol=2)
+  val=matrix(Inf,nrow=8,ncol=8)
+  D1=D0[1:15,-9]
+  D2=D0[16:30,-9]
+  for(i in 1:7){
+    for(j in(i+1):8){
+      B=D2
+      B[,c(i,j)]=na_nested
+      A=D1
+      A[,c(i,j)]=(apply(D1[,c(i,j)],2,rank)-.5)/15
+      A[,c(i,j)]=maxpro.optim(A[,c(i,j)])$design
+      D=cbind(rbind(A,B),branch)
+      val[i,j]=MaxProMeasure(D[1:15,-9])+MaxProMeasure(D[16:30,-c(9,i,j)])
+    }
+  }
+  ind=c(which(val==min(val),arr.ind=TRUE))
+  B=D2
+  B[,ind]=na_nested
+  A=D1
+  A[,ind]=(apply(D1[,ind],2,rank)-.5)/15
+  A[,ind]=maxpro.optim(A[,ind])$design
+  D=cbind(rbind(A,B),branch)
+  print(c(MaxProMeasure(D[,-ind]),MaxProMeasure(D[1:15,-9]),MaxProMeasure(D[16:30,-c(9,ind)])))
+  temp=D
+  temp[,1]=D[,9]
+  temp[,2:3]=D[,ind]
+  temp[,4:9]=D[,-c(9,ind)]
+  D=temp
+  colnames(D)=c("branch","nested1","nested2",paste("shared",sep="",1:6))
+  save(D,file="data/4.19-plot.RData")
+}
+load("data/4.19-plot.RData")
+draw=function(){
+  pairs(D,pch=ifelse(D[,"branch"]==0,4,16),col=ifelse(D[,"branch"]==0,"red","blue"))
+}
+pdf("../figures/4.19.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/4.19.svg",width=4,height=4)
+draw()
+dev.off()

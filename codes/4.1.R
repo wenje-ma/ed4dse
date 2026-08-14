@@ -1,0 +1,31 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+library(deldir)
+if(!file.exists("data/4.1-plot.RData")){
+  p=2;n=7
+  N=n*p*10000
+  library(mined)
+  library(SFDesign)
+  X=Lattice(10000,2)
+  a2=kmeans(X,centers=n,iter.max=1000,nstart=100)
+  D2=a2$centers
+  cluster.error(D2)
+  D=clustering.design(n,p)$design
+  cluster.error(D)
+  D=clustering.design(n,p,D.ini=D2)$design
+  cluster.error(D)
+  vor=deldir(D[,1],D[,2])
+  save(D,vor,file="data/4.1-plot.RData")
+}
+load("data/4.1-plot.RData")
+draw=function(){
+  plot(D,xlim=c(0,1),ylim=c(0,1),main="Clustering-based Design",xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue")
+  plot.deldir(vor,add=TRUE,wlines="tess",xlim=c(0,1),ylim=c(0,1),showpoints=FALSE)
+}
+pdf("../figures/4.1.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/4.1.svg",width=4,height=4)
+draw()
+dev.off()

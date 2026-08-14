@@ -1,0 +1,120 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/4.25-plot.RData")){
+  logf=function(para){
+    l1=-40
+    u1=40
+    l2=-25
+    u2=10
+    x1=l1+(u1-l1)*para[1]
+    x2=l2+(u2-l2)*para[2]
+    val=-.5*(x1^2/100+(x2+.03*x1^2-3)^2)
+    return(val)
+  }
+  nlogh=function(para)-logf(para)
+  h=function(para) exp(-nlogh(para))
+  target=function(para).5*logf(para)
+  N.plot=300
+  p1=seq(0,1,length.out=N.plot)
+  p2=seq(0,1,length.out=N.plot)
+  set.seed(8)
+  p=2;n=20
+  library(MaxPro)
+  ini=MaxPro(MaxProLHD(n,p)$Design)$Design
+  library(mined)
+  res=mined(ini,target,K_iter=5)
+  D=res$points
+  cand=res$cand
+  nu=cand
+  hev=apply(nu,1,h)
+  G.m=function(para){
+    A=nu%*%diag(sqrt(1/para))
+    A=as.matrix(dist(A,diag=TRUE,upper=TRUE))
+    return(exp(-.5*A^2))
+  }
+  exp1=function(e) exp(-.5*sum(e^2/sigma2))
+  g=function(gamma){
+    A=t(t(nu)-gamma)
+    vec=apply(A,1,exp1)
+    return(vec)
+  }
+  wmscv.sigma=function(para){
+    G=G.m(para)
+    Ginv=solve(G+.0001*diag(dim(G)[1]))
+    di=diag(Ginv)
+    cv=c(Ginv%*%sqrt(hev))/di
+    val=mean(di*cv^2)
+    return(log(val))
+  }
+  ini=(median(dist(nu)))^2/2
+  sigma2=optim(rep(ini,p),wmscv.sigma,lower=rep(ini/100,p),upper=rep(100*ini,p),method="L-BFGS-B")$par
+  sigma2
+  Sigma=diag(sigma2)
+  s=sqrt(diag(Sigma))
+  B=nu%*%diag(1/s)
+  B=as.matrix(dist(B,diag=TRUE,upper=TRUE))
+  G=exp(-.5*B^2)
+  Ginv=solve(G+.0001*diag(dim(G)[1]))
+  coef=Ginv%*%sqrt(hev)
+  G2=exp(-.25*B^2)
+  denom=pi*prod(s)*as.numeric(t(coef)%*%G2%*%coef)
+  Sigma.inv=diag(1/sigma2)
+  m=dim(nu)[1]
+  M=array(0,dim=c(m,m,p))
+  for(k in 1:p) M[,,k]=outer(nu[,k],nu[,k],"+")/2
+  d=outer(c(coef),c(coef),"*")*G2
+  denk=function(theta,k){
+    num=sum(d*dnorm(theta,M[,,k],s[k]/sqrt(2)))
+    return(num/sum(d))
+  }
+  den=matrix(0,nrow=N.plot,ncol=p)
+  v=cbind(p1,p2)
+  for(k in 1:p) den[,k]=apply(cbind(v[,k]),1,denk,k=k)
+  library(cubature)
+  denom=adaptIntegrate(h,c(0,0),c(1,1))$int
+  h1=function(theta1) apply(cbind(theta1,theta2),1,h)
+  val=p2
+  for(i in 1:N.plot){
+    theta2=p2[i]
+    val[i]=integrate(h1,0,1)$val
+  }
+  exact=matrix(0,nrow=N.plot,ncol=p)
+  exact[,2]=val/denom
+  h2=function(theta2) apply(cbind(theta1,theta2),1,h)
+  val=p1
+  for(i in 1:N.plot){
+    theta1=p1[i]
+    val[i]=integrate(h2,0,1)$val
+  }
+  exact[,1]=val/denom
+  library(adaptMCMC)
+  s=(2.4/sqrt(2))^2*diag(p)
+  out=MCMC(logf,n=10000,init=rep(.5,p),scale=s,adapt=TRUE,acc.rate=.05)
+  theta=out$samples
+  save(p1,p2,exact,den,theta,file="data/4.25-plot.RData")
+}
+load("data/4.25-plot.RData")
+v=cbind(p1,p2)
+draw=function(){
+  par(mfrow=c(1,2))
+  fac=c(1.2,1)
+  k=1
+  u=max(c(den[,k],exact[,k]))*fac[k]
+  plot(density(theta[,k]),type="l",col=2,ylim=c(0,u),lty=1,main="",xlab=expression(theta[1]))
+  lines(v[,k],exact[,k],col=3,lty=1)
+  lines(v[,k],den[,k],col="blue")
+  legend("topleft",col=c(3,"blue",2),legend=c("True","Dolt","MCMC"),bty="n")
+  k=2
+  u=max(c(den[,k],exact[,k]))*fac[k]
+  plot(density(theta[,k]),type="l",col=2,ylim=c(0,u),lty=1,main="",xlab=expression(theta[2]))
+  lines(v[,k],exact[,k],col=3,lty=1)
+  lines(v[,k],den[,k],col="blue")
+  legend("topleft",col=c(3,"blue",2),lwd=c(1,1,1),legend=c("True","Dolt","MCMC"),bty="n")
+}
+pdf("../figures/4.25.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/4.25.svg",width=8,height=4)
+draw()
+dev.off()
