@@ -1,0 +1,76 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/5.3-plot.RData")){
+  set.seed(1)
+  p=2
+  h=function(x) exp(-sum((x-.5)^2))
+  n=seq(10,100,by=10)
+  randw=sobw=uniw=matrix(0,nrow=10,ncol=30)
+  rand=sob=uni=matrix(0,nrow=10,ncol=30)
+  library(spacefillr)
+  library(SFDesign)
+  if(!file.exists("data/5.3-matrix.RData")){
+    for(j in 1:10){
+      for(i in 1:30){
+        R=matrix(runif(n[j]*2),ncol=2)
+        S=generate_sobol_set(n[j],2,seed=sample(1:10000,1))
+        D=uniform.optim(uniformLHD(n[j],p)$design)$design
+        randw[j,i]=uniform.crit(R)
+        sobw[j,i]=uniform.crit(S)
+        uniw[j,i]=uniform.crit(D)
+        rand[j,i]=mean(apply(R,1,h))
+        sob[j,i]=mean(apply(S,1,h))
+        uni[j,i]=mean(apply(D,1,h))
+      }
+    }
+    save(randw,sobw,uniw,rand,sob,uni,file="data/5.3-matrix.RData")
+  } else load("data/5.3-matrix.RData")
+  design=expand.grid(n=n,method=c("MC","Sobol","Uniform"))
+  wd=cbind(design,rbind(randw,sobw,uniw))
+  colnames(wd)=c("n","method",paste0("V",1:30))
+  integration=cbind(design,rbind(rand,sob,uni))
+  colnames(integration)=c("n","method",paste0("V",1:30))
+  true=pi*(pnorm(.5*sqrt(2))-pnorm(-.5*sqrt(2)))^2
+  save(wd,integration,true,file="data/5.3-plot.RData")
+}
+load("data/5.3-plot.RData")
+get.quant=function(dat){
+  vals=as.matrix(dat[,paste0("V",1:30)])
+  l=apply(vals,1,quantile,probs=.05)
+  m=apply(vals,1,quantile,probs=.5)
+  u=apply(vals,1,quantile,probs=.95)
+  cbind(l,m,u)
+}
+methods=unique(wd$method)
+n=wd$n[wd$method==methods[1]]
+cols=c("firebrick2","dodgerblue3","forestgreen")
+pchs=c(16,17,15);ltys=1:3
+draw=function(){
+  par(mfrow=c(1,2),mar=c(4,4,3,1))
+  q.wd=get.quant(wd)
+  plot(0,type="n",xlim=range(n),ylim=range(q.wd),xlab="n",ylab="discrepancy",main="Discrepancy")
+  for(k in 1:3){
+    idx=wd$method==methods[k]
+    polygon(c(n,rev(n)),c(q.wd[idx,"l"],rev(q.wd[idx,"u"])),col=adjustcolor(cols[k],alpha.f=.4),border=NA)
+    lines(n,q.wd[idx,"m"],col=cols[k],lty=ltys[k])
+    points(n,q.wd[idx,"m"],col=cols[k],pch=pchs[k])
+  }
+  legend("topright",legend=c("MC","Sobol","Uniform"),col=cols,pch=pchs,fill=adjustcolor(cols,alpha.f=.4),border=NA,bty="n")
+  q.int=get.quant(integration)
+  plot(0,type="n",xlim=range(n),ylim=range(q.int),xlab="n",ylab="integration",main="Integration")
+  abline(h=true,lty=2,col="gray40")
+  for(k in 1:3){
+    idx=integration$method==methods[k]
+    polygon(c(n,rev(n)),c(q.int[idx,"l"],rev(q.int[idx,"u"])),col=adjustcolor(cols[k],alpha.f=.4),border=NA)
+    lines(n,q.int[idx,"m"],col=cols[k],lty=ltys[k])
+    points(n,q.int[idx,"m"],col=cols[k],pch=pchs[k])
+  }
+  legend("bottomright",legend=c("MC","Sobol","Uniform"),col=cols,pch=pchs,fill=adjustcolor(cols,alpha.f=.4),border=NA,bty="n")
+}
+pdf("../figures/5.3.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/5.3.svg",width=8,height=4)
+draw()
+dev.off()

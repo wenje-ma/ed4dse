@@ -1,0 +1,43 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/5.8-plot.RData")){
+  library(support)
+  f=function(x) 2*pi*x[3]*(x[4]-x[6])/(log(x[2]/x[1])*(1+2*x[7]*x[3]/(log(x[2]/x[1])*x[1]^2*x[8])+x[3]/x[5]))
+  p=8;N=100000;n=100
+  lower=c(0.05,100,63070,990,63.1,700,1120,9855)
+  upper=c(0.15,50000,115600,1110,116,820,1680,12045)
+  set.seed(1)
+  X1=0.1+0.01618*rnorm(N)
+  X2=exp(7.71+1.0056*rnorm(N))
+  X=matrix(0,nrow=N,ncol=p)
+  X[,1:2]=cbind(X1,X2)
+  X[,3:p]=matrix(runif(N*6),nrow=N)
+  X[,3:p]=sweep(X[,3:p],2,upper[3:p]-lower[3:p],"*")
+  X[,3:p]=sweep(X[,3:p],2,lower[3:p],"+")
+  true=apply(X,1,f)
+  x=X[sample(1:N,n),]
+  mc=apply(x,1,f)
+  mu=apply(X,2,mean)
+  sigma=apply(X,2,sd)
+  Z=sweep(X,2,mu,"-")
+  Z=sweep(Z,2,sigma,"/")
+  D=sp(n,p,dist.samp=Z)$sp
+  D=sweep(D,2,sigma,"*")
+  D=sweep(D,2,mu,"+")
+  y=apply(D,1,f)
+  save(true,mc,y,file="data/5.8-plot.RData")
+}
+load("data/5.8-plot.RData")
+draw=function(){
+  plot(density(true),lty=3,xlim=c(0,200),xlab="y",main="Output Distribution")
+  lines(density(mc),col=2,lty=2)
+  lines(density(y),col=3)
+  legend("topright",legend=c("Truth","MC","Support Points"),col=c(1,2,3),lty=c(3,2,1),bty="n")
+}
+pdf("../figures/5.8.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/5.8.svg",width=4,height=4)
+draw()
+dev.off()

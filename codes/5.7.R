@@ -1,0 +1,46 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/5.7-plot.RData")){
+  p=2;n=50;N=10000;N.plot=300
+  set.seed(1)
+  library(mnormt)
+  X1=rmnorm(N,mean=c(0,0),varcov=matrix(c(1,.5,.5,1),2,2))
+  library(support)
+  D1=sp(n,p,dist.samp=X1)$sp
+  f1=function(x) dmnorm(x,mean=c(0,0),varcov=matrix(c(1,.5,.5,1),2,2))
+  p11=seq(-3,3,length.out=N.plot)
+  p12=seq(-3,3,length.out=N.plot)
+  fc1=matrix(apply(expand.grid(p11,p12),1,f1),N.plot,N.plot)
+  logf=function(para){
+    l1=-40;u1=40;l2=-25;u2=10
+    x1=l1+(u1-l1)*para[1]
+    x2=l2+(u2-l2)*para[2]
+    -.5*(x1^2/100+(x2+.03*x1^2-3)^2)
+  }
+  p21=seq(0,1,length.out=N.plot)
+  p22=seq(0,1,length.out=N.plot)
+  fc2=matrix(exp(apply(expand.grid(p21,p22),1,logf)),N.plot,N.plot)
+  library(adaptMCMC)
+  a=MCMC(logf,n=100000,init=c(.5,.8),acc.rate=0.4)
+  X2=a$samples
+  D2=sp(n,p,dist.samp=X2)$sp
+  save(D1,D2,p11,p12,p21,p22,fc1,fc2,file="data/5.7-plot.RData")
+}
+load("data/5.7-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  image(p11,p12,fc1,xlab=expression(x[1]),ylab=expression(x[2]),col=cm.colors(5),main="Correlated Normal Distribution",asp=1)
+  contour(p11,p12,fc1,add=TRUE,nlevels=10)
+  points(D1,pch=16,col="blue")
+  image(p21,p22,fc2,xlab=expression(theta[1]),ylab=expression(theta[2]),col=cm.colors(5),main="Banana-shaped density",asp=1)
+  contour(p21,p22,fc2,add=TRUE,nlevels=10)
+  points(D2,pch=16,col="blue")
+  par(mfrow=c(1,1))
+}
+pdf("../figures/5.7.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/5.7.svg",width=8,height=4)
+draw()
+dev.off()

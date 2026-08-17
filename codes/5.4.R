@@ -1,0 +1,36 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/5.4-plot.RData")){
+  p=2;n=50;N.plot=300
+  set.seed(6)
+  library(SFDesign)
+  d=uniform.optim(uniformLHD(n,p)$design)$design
+  D1=qnorm(d)
+  f1=function(x) exp(-.5*sum(x^2))/(2*pi)
+  p11=seq(-3,3,length.out=N.plot)
+  p12=seq(-3,3,length.out=N.plot)
+  fc1=matrix(apply(expand.grid(p11,p12),1,f1),N.plot,N.plot)
+  D2=qgamma(d,2,1)
+  f2=function(x) prod(dgamma(x,2,1))
+  p21=seq(0,6,length.out=N.plot)
+  p22=seq(0,6,length.out=N.plot)
+  fc2=matrix(apply(expand.grid(p21,p22),1,f2),N.plot,N.plot)
+  save(D1,D2,p11,p12,p21,p22,fc1,fc2,file="data/5.4-plot.RData")
+}
+load("data/5.4-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  image(p11,p12,fc1,xlab=expression(x[1]),ylab=expression(x[2]),col=cm.colors(5),main="Normal Distribution",asp=1)
+  contour(p11,p12,fc1,add=TRUE,nlevels=10)
+  points(D1,pch=16,col="blue")
+  image(p21,p22,fc2,xlab=expression(x[1]),ylab=expression(x[2]),col=cm.colors(5),main="Gamma Distribution",asp=1)
+  contour(p21,p22,fc2,add=TRUE,nlevels=10)
+  points(D2,pch=16,col="blue")
+}
+pdf("../figures/5.4.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/5.4.svg",width=8,height=4)
+draw()
+dev.off()
