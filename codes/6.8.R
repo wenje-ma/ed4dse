@@ -1,0 +1,33 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/6.8-plot.RData")){
+  library(MOFAT)
+  f=function(x){
+    lower=c(0.05,100,63070,990,63.1,700,1120,9855)
+    upper=c(0.15,50000,115600,1110,116,820,1680,12045)
+    x=lower+x*(upper-lower)
+    val=2*pi*x[3]*(x[4]-x[6])/(log(x[2]/x[1])*(1+2*x[7]*x[3]/(log(x[2]/x[1])*x[1]^2*x[8])+x[3]/x[5]))
+    return(val)
+  }
+  p=8;m=4
+  mustar=matrix(0,nrow=100,ncol=p)
+  for(i in 1:100){
+    d=mofat(p=8,l=m)
+    y=apply(d,1,f)
+    mustar[i,]=measure(d,y)$mustar
+    mustar[i,]=mustar[i,]/sum(mustar[i,])
+  }
+  colnames(mustar)=paste("x",sep="",1:p)
+  save(mustar,file="data/6.8-plot.RData")
+}
+load("data/6.8-plot.RData")
+draw=function(){
+  boxplot(mustar,main="MOFAT design",col="lightblue",ylab=expression(mu^"*"))
+}
+pdf("../figures/6.8.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/6.8.svg",width=4,height=4)
+draw()
+dev.off()

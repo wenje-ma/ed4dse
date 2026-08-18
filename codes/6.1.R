@@ -1,0 +1,64 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/6.1-plot.RData")){
+  f=function(x){
+    lower=c(0.05,100,63070,990,63.1,700,1120,9855)
+    upper=c(0.15,50000,115600,1110,116,820,1680,12045)
+    x=lower+x*(upper-lower)
+    val=2*pi*x[3]*(x[4]-x[6])/(log(x[2]/x[1])*(1+2*x[7]*x[3]/(log(x[2]/x[1])*x[1]^2*x[8])+x[3]/x[5]))
+    return(val)
+  }
+  set.seed(1)
+  p=8
+  library(sensitivity)
+  m=10000
+  A=matrix(runif(m*p),nrow=m)
+  B=matrix(runif(m*p),nrow=m)
+  borehole=function(X) apply(X,1,f)
+  a.sen=soboljansen(model=borehole,X1=data.frame(A),X2=data.frame(B))
+  print(a.sen)
+  sf=pmax(unlist(a.sen$S),0)
+  st=pmax(unlist(a.sen$T),0)
+  x=matrix(c(sf,st-sf),nrow=2,byrow=TRUE)
+  colnames(x)=paste("x",sep="",1:8)
+  rownames(x)=c("first order","total-first order")
+  library(SFDesign)
+  library(rkriging)
+  p=8
+  n=10*p
+  D=maxpro.optim(maxproLHD(n,p)$design)$design
+  y=apply(D,1,f)
+  a.fit=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
+  fhat=function(x,fit) Predict.Kriging(fit,matrix(x,ncol=p))$mean
+  N=10*p
+  D.eval=uniformLHD(N,p)$design
+  f.eval=apply(D.eval,1,fhat,a.fit)
+  f0=mean(f.eval)
+  x.ev=seq(0,1,length=20)
+  val=x.ev
+  main.effect=function(ind){
+    D0=D.eval
+    for(i in 1:20){
+      D0[,ind]=rep(x.ev[i],N)
+      val[i]=mean(apply(D0,1,fhat,a.fit))
+    }
+    return(val-f0)
+  }
+  M=matrix(0,nrow=20,ncol=p)
+  for(j in 1:4) M[,j]=main.effect(j)
+  save(x,x.ev,M,file="data/6.1-plot.RData")
+}
+load("data/6.1-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  barplot(x,col=c("lightblue","pink"),names.arg=paste0("x",1:8),legend.text=TRUE,args.legend=list("bty"="n"),ylab="Total Sobol' Index",main="Sobol' Indices")
+  matplot(x.ev,M,type="l",lty=1:4,col=1:4,xlab="x",ylab="Main Effects",main="Main Effects Plot")
+  legend("topleft",c("x1","x2","x3","x4","x5","x6","x7","x8"),bty="n",lty=1:4,col=1:4)
+}
+pdf("../figures/6.1.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/6.1.svg",width=8,height=4)
+draw()
+dev.off()

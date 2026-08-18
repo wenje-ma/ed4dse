@@ -1,0 +1,42 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/6.5-plot.RData")){
+  library(sensitivity)
+  f=function(x){
+    lower=c(0.05,100,63070,990,63.1,700,1120,9855)
+    upper=c(0.15,50000,115600,1110,116,820,1680,12045)
+    x=lower+x*(upper-lower)
+    val=2*pi*x[3]*(x[4]-x[6])/(log(x[2]/x[1])*(1+2*x[7]*x[3]/(log(x[2]/x[1])*x[1]^2*x[8])+x[3]/x[5]))
+    return(val)
+  }
+  borehole=function(X) apply(X,1,f)
+  set.seed(1)
+  a=morris(model=borehole,factors=8,r=4,design=list(type="oat",levels=4,grid.jump=2))
+  mu=abs(apply(a$ee,2,function(x) mean(x)))
+  sigma=apply(a$ee,2,sd)
+  mustar=matrix(0,nrow=100,ncol=8)
+  for(i in 1:100){
+    am=morris(model=borehole,factors=8,r=4,design=list(type="oat",levels=4,grid.jump=2))
+    mustar[i,]=apply(am$ee,2,function(x) mean(abs(x)))
+  }
+  lab=paste("x",sep="",1:8)
+  colnames(mustar)=lab
+  save(mu,sigma,mustar,file="data/6.5-plot.RData")
+}
+load("data/6.5-plot.RData")
+sel=(mu>10)
+lab=paste("x",sep="",1:8)
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(mu,sigma,type="n",xlab=expression(abs(mu)),ylab=expression(sigma),main="Borehole Function")
+  text(mu[sel],sigma[sel],lab[sel],col=2)
+  points(mu[!sel],sigma[!sel])
+  boxplot(mustar,main="Morris Screening Design",col="lightblue",ylab=expression(mu^"*"))
+}
+pdf("../figures/6.5.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/6.5.svg",width=8,height=4)
+draw()
+dev.off()
