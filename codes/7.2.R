@@ -1,0 +1,110 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/7.2-plot.RData")){
+  library(rkriging)
+  library(MaxPro)
+  library(spacefillr)
+  library(FNN)
+  library(pdist)
+  f=function(x){
+    x1=x[1]*15-5
+    x2=x[2]*15
+    val1=(x2-5.1/(4*pi^2)*(x1^2)+5/pi*x1-6)^2
+    val2=10*(1-1/(8*pi))*cos(x1)+10
+    return(val1+val2)
+  }
+  ALC=function(D0,y0,Nnew){
+    D=D0
+    y=y0
+    n=nrow(D0)
+    p=ncol(D0)
+    test=generate_sobol_set(1000*p,p,seed=sample(10^6,1))
+    truey=apply(test,1,f)
+    rmse=numeric(Nnew+1)
+    for(i in 1:Nnew){
+      CAND0=generate_sobol_set(100*p,p,seed=sample(10^6,1))
+      if(i==1) theta=rep(1,p)
+      kernel=Gaussian.Kernel(theta)
+      obj1=Fit.Kriging(D,y,model="OK",kernel=kernel)
+      obj2=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
+      if(obj1$get_nllh()<obj2$get_nllh()) obj=obj1 else obj=obj2
+      theta=obj$get_lengthscale()
+      pred=Predict.Kriging(obj,test)$mean
+      rmse[i]=sqrt(mean((pred-truey)^2))
+      print(rmse[i])
+      kernel=Gaussian.Kernel(theta)
+      R=Evaluate.Kernel(kernel,D)
+      Rinv=solve(R+10^(-6)*diag(n))
+      r=function(x,theta){
+        if(p>1){
+          A=D-rep(1,n)%*%t(x)
+          g=exp(-.5*apply(abs(A%*%diag(1/theta))^2,1,sum))
+        }else{
+          g=exp(-.5*abs((D-x)/theta)^2)
+        }
+        return(g)
+      }
+      basis=function(h,theta) exp(-.5*sum((h/theta)^2))
+      opt=function(v,theta){
+        a=r(v,theta)
+        b=c(Rinv%*%a)
+        numer=function(x,v,theta){
+          val=(basis(x-v,theta)-sum(b*r(x,theta)))^2
+          return(val)
+        }
+        val=mean(apply(CAND0,1,numer,v=v,theta=theta))/max(1-sum(a*b),10^(-6))
+        return(val)
+      }
+      d=c(knn.dist(D,k=1))/2
+      dis=as.matrix(pdist(D,CAND0))
+      N=dim(CAND0)[1]
+      ind=NULL
+      for(ii in 1:n) ind=c(ind,(1:N)[dis[ii,]<d[ii]])
+      CAND=CAND0[-ind,]
+      xnew=CAND[which.max(apply(CAND,1,opt,theta=theta)),]
+      D=rbind(D,xnew)
+      y=c(y,f(xnew))
+      n=n+1
+    }
+    kernel=Gaussian.Kernel(theta)
+    obj1=Fit.Kriging(D,y,model="OK",kernel=kernel)
+    obj2=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
+    if(obj1$get_nllh()<obj2$get_nllh()) obj=obj1 else obj=obj2
+    theta=obj$get_lengthscale()
+    print(theta)
+    pred=Predict.Kriging(obj,test)$mean
+    rmse[Nnew+1]=sqrt(mean((pred-truey)^2))
+    print(rmse[Nnew+1])
+    return(list("D"=D,"rmse"=rmse))
+  }
+  set.seed(1)
+  p=4;n=20
+  D0=MaxPro(MaxProLHD(n,p)$Design)$Design
+  y0=apply(D0,1,f)
+  system.time({a=ALC(D0,y0,Nnew=10)})
+  D=a$D
+  rmse=a$rmse
+  m.D=D
+  colnames(m.D)=c("D1","D2","D3","D4")
+  save(D,rmse,n,file="data/7.2-plot.RData")
+}
+load("data/7.2-plot.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  plot(D[1:n,1:2],xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col=4)
+  points(D[(n+1):(n+10),1:2],col=2,pch=NA)
+  text(D[(n+1):(n+10),1:2],col=2,labels=1:10)
+  plot(D[1:n,3:4],xlim=c(0,1),ylim=c(0,1),xlab=expression(x[3]),ylab=expression(x[4]),pch=16,col=4)
+  points(D[(n+1):(n+10),3:4],col=2,pch=NA)
+  text(D[(n+1):(n+10),3:4],col=2,labels=1:10)
+  plot(1:11,rmse,pch=4,xaxt="n",xlab="new design run",ylab="RMSE",col=4)
+  lines(1:11,rmse)
+  axis(1,at=1:11,labels=0:10)
+}
+pdf("../figures/7.2.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/7.2.svg",width=12,height=4)
+draw()
+dev.off()

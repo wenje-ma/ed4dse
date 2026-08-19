@@ -1,0 +1,94 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/7.5-plot.RData")){
+  library(rkriging)
+  set.seed(1)
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  EI=function(x,hmin,obj){
+    pred=Predict.Kriging(obj,cbind(x))
+    s=max(pred$sd,10^(-10))
+    u=(hmin-pred$mean)/s
+    val=s*(u*pnorm(u)+dnorm(u))
+    return(val)
+  }
+  test=seq(0,1,length=301)
+  true=f(test)
+  n=8
+  D=((1:n)-.5)/n
+  y=f(D)
+  a=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
+  pred=Predict.Kriging(a,test)
+  low=pred$mean-2*pred$sd
+  up=pred$mean+2*pred$sd
+  ei=apply(cbind(test),1,EI,hmin=min(y),obj=a)
+  xnew=test[which.max(ei)]
+  m.mean=pred$mean
+  m.low=low
+  m.up=up
+  m.ei=ei
+  for(i in 1:2){
+    D=c(D,xnew)
+    y=c(y,f(xnew))
+    a=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
+    pred=Predict.Kriging(a,test)
+    low=pred$mean-2*pred$sd
+    up=pred$mean+2*pred$sd
+    ei=apply(cbind(test),1,EI,hmin=min(y),obj=a)
+    xnew=test[which.max(ei)]
+    m.mean=cbind(m.mean,pred$mean)
+    m.low=cbind(m.low,low)
+    m.up=cbind(m.up,up)
+    m.ei=cbind(m.ei,ei)
+  }
+  save(D,y,test,true,m.mean,m.low,m.up,m.ei,n,file="data/7.5-plot.RData")
+}
+load("data/7.5-plot.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  pred.mean=m.mean[,1]
+  low=m.low[,1]
+  up=m.up[,1]
+  ei=m.ei[,1]
+  plot(test,true,type="l",xlab="x",ylab="y",lty=3,col=3,ylim=c(min(true)-.25,max(true)+.5),main="Initial")
+  polygon(c(test,rev(test)),c(low,rev(up)),col="lightgray",border="NA")
+  lines(test,low,col="lightgray")
+  lines(test,up,col="lightgray")
+  lines(test,pred.mean,col=1,lty=2)
+  points(cbind(D[1:n],y[1:n]),pch=16,col=4)
+  lines(test,true,lty=3,col=3)
+  legend("topleft",legend=c("truth","prediction","EI"),lty=c(3,2,1),col=c(3,1,2),bty="n")
+  par(new=TRUE)
+  plot(test,ei,"l",col=2,axes=FALSE,ylim=c(0,3*max(ei)),xlab="",ylab="")
+  axis(side=4,at=pretty(range(3*ei)))
+  mtext("EI",side=4,line=3,col=2)
+  xnew=test[which.max(ei)]
+  points(xnew,0,col=2,pch=8)
+  for(i in 1:2){
+    pred.mean=m.mean[,i+1]
+    low=m.low[,i+1]
+    up=m.up[,i+1]
+    ei=m.ei[,i+1]
+    plot(test,true,type="l",xlab="x",ylab="y",lty=3,col=3,ylim=c(min(true)-.25,max(true)+.5),main=paste("Step",i))
+    polygon(c(test,rev(test)),c(low,rev(up)),col="lightgray",border="NA")
+    lines(test,low,col="lightgray")
+    lines(test,up,col="lightgray")
+    lines(test,pred.mean,col=1,lty=2)
+    points(cbind(D[1:n],y[1:n]),pch=16,col=4)
+    text(cbind(D[(n+1):(n+i)],y[(n+1):(n+i)]),labels=(n+1):(n+i),col=4)
+    lines(test,true,lty=3,col=3)
+    legend("topleft",legend=c("truth","prediction","EI"),lty=c(3,2,1),col=c(3,1,2),bty="n")
+    par(new=TRUE)
+    plot(test,ei,"l",col=2,axes=FALSE,ylim=c(0,3*max(ei)),xlab="",ylab="")
+    axis(side=4,at=pretty(range(3*ei)))
+    mtext("EI",side=4,line=3,col=2)
+    xnew=test[which.max(ei)]
+    points(xnew,0,col=2,pch=8)
+  }
+}
+pdf("../figures/7.5.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/7.5.svg",width=12,height=4)
+draw()
+dev.off()
