@@ -1,0 +1,42 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+library(spacefillr)
+library(support)
+library(Ternary)
+p=3
+N=10000
+u=generate_sobol_set(N,p-1)
+x=matrix(0,nrow=N,ncol=p)
+x[,1]=(1-u[,1]^(1/2))
+x[,2]=u[,1]^(1/2)*(1-u[,2])
+x[,3]=u[,1]^(1/2)*u[,2]
+set.seed(1)
+n=11
+if(!file.exists("data/8.5-plot1.RData")){
+  D1=sp(n,p,dist.samp=x)$sp
+  save(D1,file="data/8.5-plot1.RData")
+}
+load("data/8.5-plot1.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  TernaryPlot(axis.labels=seq(0,1,by=0.1),atip=expression(x[1]),btip=expression(x[3]),ctip=expression(x[2]),alab="Fraction x1",blab="Fraction x3",clab="Fraction x2")
+  TernaryPoints(D1,col=4,pch=16)
+  CAND=x
+  C1=(x[,1]+x[,2]<.7)
+  C2=(x[,1]+x[,2]>.3)
+  CAND=CAND[C1&C2,]
+  if(!file.exists("data/8.5-plot2.RData")){
+    D2=sp(n,p,dist.samp=CAND)$sp
+    save(D2,file="data/8.5-plot2.RData")
+  }
+  load("data/8.5-plot2.RData")
+  TernaryPlot(axis.labels=seq(0,1,by=0.1),atip=expression(x[1]),btip=expression(x[3]),ctip=expression(x[2]),alab="Fraction x1",blab="Fraction x3",clab="Fraction x2")
+  TernaryPoints(D2,col=4,pch=16)
+}
+pdf("../figures/8.5.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/8.5.svg",width=8,height=4)
+draw()
+dev.off()

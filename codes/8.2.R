@@ -1,0 +1,37 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+A=rep(c(-1,1),c(4,4))
+B=rep(rep(c(-1,1),c(2,2)),2)
+C=rep(c(-1,1),4)
+D=A*B*C
+d=cbind(A,B,C,D)
+y=c(504,984,928,808,992,784,464,976)
+if(!file.exists("data/8.2-plot.RData")){
+  library(rkriging)
+  a=Fit.Kriging(d,y,kernel.parameters=list(type="Gaussian"))
+  theta=Get.Kriging.Parameters(a)$lengthscale
+  mu=Get.Kriging.Parameters(a)$mu
+  gam=(1-exp(-2^2/(2*theta)))/(1+exp(-2^2/(2*theta)))
+  X=model.matrix(lm(y~(A+B+C+D)^4),data=data.frame(A,B,C,D))
+  G=diag(c(model.matrix(lm(1~(gam[1]+gam[2]+gam[3]+gam[4])^4))))
+  alpha=G%*%t(X)%*%solve(X%*%G%*%t(X))%*%(y-mu)
+  eff=alpha[-1]
+  names(eff)=c("1","2","3","4","12","13","14","23","24","34","123","124","134","234","1234")
+  save(eff,gam,file="data/8.2-plot.RData")
+}
+load("data/8.2-plot.RData")
+I=length(eff)
+u=qnorm(.5+.5*(1:I-.5)/I)
+saeff=sort(abs(eff))
+draw=function(){
+  plot(u,saeff,type="n",xlab="Half-normal Quantiles",ylab="Absolute Coefficients",main="Bayesian Half-normal Plot",xlim=c(0,max(u)+.1))
+  size=c(rep(1.5,12),rep(2,3))
+  text(u,saeff,names(saeff),col=c(rep(4,12),rep(2,3)))
+}
+pdf("../figures/8.2.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/8.2.svg",width=4,height=4)
+draw()
+dev.off()

@@ -1,0 +1,104 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+library(DoE.base)
+library(SFDesign)
+library(twinning)
+full=full.factorial(4,3)
+D=undesign(oa.design(nfactors=4,nlevels=3,randomize=FALSE))
+D=data.matrix(D)
+D1=rbind(D,D)
+D1=(D1-1)/2
+mp1=maxpro.crit(D1,delta=1/3^2)/3^2
+en1=energy(full,D1)
+D=undesign(oa.design(ID=L18,randomize=FALSE))
+D=data.matrix(D)
+D2=D[,2:5]
+D2=(D2-1)/2
+mp2=maxpro.crit(D2,delta=1/3^2)/3^2
+en2=energy(full,D2)
+D=undesign(oa.design(ID=L18,randomize=FALSE))
+D=data.matrix(D)
+D3=D[,3:6]
+mp3=maxpro.crit((D3-1)/2,delta=1/3^2)/3^2
+en3=energy(full,(D3-1)/2)
+if(!file.exists("data/8.3-plot.RData")){
+  A=array(data=rep(0,18*4*27),dim=c(18,4,27))
+  D=undesign(oa.design(ID=L18,randomize=FALSE))
+  D=data.matrix(D)
+  D=D[,3:6]
+  D1=(D[,1]-1)/2
+  A1=lapply(1:3,function(i){
+    D2=D[,2]
+    if(i==2){
+      D2=ifelse(D2==1,1,ifelse(D2==2,3,2))
+    }else if(i==3){
+      D2=ifelse(D2==1,2,ifelse(D2==2,1,3))
+    }
+    D2=(D2-1)/2
+    return(D2)
+  })
+  A2=lapply(1:3,function(i){
+    D3=D[,3]
+    if(i==2){
+      D3=ifelse(D3==1,1,ifelse(D3==2,3,2))
+    }else if(i==3){
+      D3=ifelse(D3==1,2,ifelse(D3==2,1,3))
+    }
+    D3=(D3-1)/2
+    return(D3)
+  })
+  A3=lapply(1:3,function(i){
+    D4=D[,4]
+    if(i==2){
+      D4=ifelse(D4==1,1,ifelse(D4==2,3,2))
+    }else if(i==3){
+      D4=ifelse(D4==1,2,ifelse(D4==2,1,3))
+    }
+    D4=(D4-1)/2
+    return(D4)
+  })
+  a=expand.grid(c(1,2,3),c(1,2,3),c(1,2,3))
+  for(i in 1:27){
+    idx=a[i,]
+    A[,,i]=cbind(D1,A1[[idx$Var1]],A2[[idx$Var2]],A3[[idx$Var3]])
+  }
+  val.mp=val.en=numeric(27)
+  for(k in 1:27){
+    val.mp[k]=maxpro.crit(A[,,k],delta=1/3^2)/3^2
+    val.en[k]=energy(full,A[,,k])
+  }
+  N=1000000
+  val.mp.sim=val.en.sim=numeric(N)
+  for(i in 1:N){
+    set.seed(i)
+    D=full[sample(1:81,18),]
+    val.mp.sim[i]=maxpro.crit(D,delta=1/3^2)/3^2
+    val.en.sim[i]=energy(full,D)
+  }
+  save(val.mp,val.en,val.mp.sim,val.en.sim,file="data/8.3-plot.RData")
+}
+load("data/8.3-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(density(val.mp.sim),xlim=c(.4,.52),main="MaxPro criterion for 18-run designs",xlab="MaxPro measure",ylab="Density")
+  abline(v=unique(val.mp),col=4)
+  abline(v=unique(mp1),lty=3,col=2)
+  abline(v=unique(mp2),lty=2,col=3)
+  text(mp1,3,expression(D[1]))
+  text(mp2,3,expression(D[2]))
+  text(mp3,3,expression(D[3]))
+  plot(density(val.en.sim),xlim=c(2.7,3.05),main="Energy distance for 18-run designs",xlab="energy distance",ylab="Density")
+  abline(v=unique(val.en),col=4)
+  abline(v=unique(en1),lty=3,col=2)
+  abline(v=unique(en2),lty=2,col=3)
+  text(en1+.015,3,expression(D[1]))
+  text(en2+.015,3,expression(D[2]))
+  text(en3-.015,3,expression(D[3]))
+}
+pdf("../figures/8.3.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/8.3.svg",width=8,height=4)
+draw()
+dev.off()

@@ -1,0 +1,32 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/8.1-plot.RData")){
+  A=rep(c(-1,1),c(4,4))
+  B=rep(rep(c(-1,1),c(2,2)),2)
+  C=rep(c(-1,1),4)
+  D=A*B*C
+  X=model.matrix(rep(1,8)~(A+B+C)^3)
+  E=model.matrix(rep(1,8)~(A+B+C+D)^4)
+  print(solve(t(X)%*%X)%*%t(X)%*%E)
+  y=c(504,984,928,808,992,784,464,976)
+  a=lm(y~(A+B+C)^3)
+  print(summary(a))
+  eff=a$coef[-1]
+  names(eff)=c("1","2","3","12","13","23","123")
+  save(eff,file="data/8.1-plot.RData")
+}
+load("data/8.1-plot.RData")
+I=length(eff)
+u=qnorm(.5+.5*(1:I-.5)/I)
+saeff=sort(abs(eff))
+draw=function(){
+  plot(u,saeff,type="n",xlab="Half-normal Quantiles",ylab="Absolute Coefficients",main="Half-normal Plot",xlim=c(0,max(u)+.1))
+  text(u,saeff,names(saeff),col=c(rep(4,4),rep(2,3)))
+}
+pdf("../figures/8.1.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/8.1.svg",width=4,height=4)
+draw()
+dev.off()
