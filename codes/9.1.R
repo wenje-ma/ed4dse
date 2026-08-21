@@ -1,0 +1,123 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/9.1-plot.RData")){
+  library(rkriging)
+  library(FNN)
+  library(ICAOD)
+  library(numDeriv)
+  set.seed(1)
+  MP=read.csv(file="data/results.csv",h=TRUE)
+  q=5
+  D=MP[-51,1:q]
+  colnames(D)=NULL
+  D[,1]=(log(D[,1])-log(1e-12))/(log(1e-9)-log(1e-12))
+  D[,2]=(D[,2]-4e-3)/(5e-3-4e-3)
+  D[,3]=(D[,3]-5e-3)/(6e-3-5e-3)
+  D[,4]=(D[,4]-500)/(2500-500)
+  D[,5]=(log(D[,5])-log(1e-3))/(log(1e1)-log(1e-3))
+  N=dim(D)[1]
+  q=dim(D)[2]
+  pdet=c(seq(0,5000,length.out=2001),seq(5000,120000,length.out=4601)[-1])
+  M=length(pdet)
+  filename=paste(paste("data/txts/run",sep="",1:50),sep="",".txt")
+  Y=matrix(0,nrow=N,ncol=M)
+  for(i in 1:N) Y[i,]=read.table(file=filename[i])$V1
+  tsamp=seq(0,max(pdet),length=1001)
+  Ysamp=Y[,1:1001]
+  for(i in 1:N){
+    Ysamp[i,]=knn.reg(train=cbind(pdet),test=cbind(tsamp),y=Y[i,],k=1)$pred
+  }
+  M=length(tsamp)
+  tsamp01=tsamp/max(tsamp)
+  r.x=function(u,theta.x){
+    A=t(t(D1)-u)
+    basis.x=function(h) exp(-sum((h/theta.x)^2))
+    vec=apply(A,1,basis.x)
+    return(vec)
+  }
+  r.t=function(v,theta.t){
+    basis.t=function(h) exp(-abs(h/theta.t))
+    vec=basis.t(v-tsamp01)
+    return(vec)
+  }
+  Rtinv.mat=function(rho){
+    A=diag(M)
+    for(i in 2:(M-1)){
+      A[i,i-1]=A[i,i+1]=-rho
+      A[i,i]=1+rho^2
+    }
+    A[1,2]=A[M,M-1]=-rho
+    return(A/(1-rho^2))
+  }
+  ML=function(para){
+    theta.x=para[1:q]
+    theta.t=para[q+1]
+    Rx=apply(D1,1,r.x,theta=theta.x)
+    Rxinv=solve(Rx+10^(-6)*diag(N))
+    rho=exp(-1/((M-1)*theta.t))
+    Rtinv=Rtinv.mat(rho)
+    a=c(t((Rxinv%*%rep(1,N))%*%(t(rep(1,M))%*%Rtinv)))
+    b=c(t(Rxinv%*%Ysamp%*%Rtinv))
+    mu=sum(b)/sum(a)
+    sigma2=1/(M*N)*sum((c(t(Ysamp))-mu)*(b-mu*a))
+    val=M*N*log(sigma2)+M*determinant(Rx,logarithm=TRUE)$mod[1]+M*N*log(1-rho^2)
+    return(val)
+  }
+  y=apply(Ysamp,1,mean)
+  D1=as.matrix(D[,1:q])
+  a=Fit.Kriging(D1,y,kernel.parameters=list(type="Gaussian"))
+  ini.x=Get.Kriging.Parameters(a)$lengthscale*sqrt(2)
+  y=apply(Ysamp,2,mean)
+  a=Fit.Kriging(tsamp/max(tsamp),y,kernel.parameters=list(type="Matern12"))
+  ini.t=Get.Kriging.Parameters(a)$lengthscale
+  ini=c(ini.x,ini.t)
+  a.opt=optim(ini,ML,lower=ini/10,upper=ini*10,method="L-BFGS-B")
+  theta=a.opt$par
+  theta.x=theta[1:q]
+  theta.t=theta[q+1]
+  Rx=apply(D1,1,r.x,theta=theta.x)
+  A=solve(Rx+10^(-6)*diag(N))
+  Rxinv=A
+  for(i in 1:3) Rxinv=A%*%(diag(N)+10^(-6)*Rxinv)
+  rho=exp(-1/((M-1)*theta.t))
+  Rtinv=Rtinv.mat(rho)
+  a=c(t((Rxinv%*%rep(1,N))%*%(t(rep(1,M))%*%Rtinv)))
+  b=c(t(Rxinv%*%Ysamp%*%Rtinv))
+  mu=sum(b)/sum(a)
+  sigma2=1/(M*N)*sum((c(t(Ysamp))-mu)*(b-mu*a))
+  coef=c(b-mu*a)
+  COEF=matrix(coef,nrow=N,ncol=M,byrow=TRUE)
+  hhat=function(ti,eta) drop(mu+t(r.x(eta,theta.x)%*%COEF%*%r.t(ti,theta.t)))
+  fim=function(x,w,param){
+    S=matrix(0,nrow=m,ncol=q)
+    X=matrix(x,nrow=m)
+    for(i in 1:m){
+      heta=function(eta) hhat(X[i,],eta)
+      S[i,]=grad(heta,x=param)
+    }
+    M=t(S)%*%diag(w)%*%S
+    return(M)
+  }
+  m=q
+  opdes=locally(fimfunc=fim,lx=c(0),ux=c(1),inipars=rep(.5,q),iter=100,k=m,family=gaussian(),ICA.control=list("trace"=FALSE))
+  D=matrix(as.numeric(opdes$design[2:(m+1)]),nrow=m,ncol=1)
+  w=as.numeric(opdes$design[(m+2):(2*m+1)])
+  det(fim(x=c(D),w=w,param=rep(.5,q)))
+  DVPI=D
+  pred=apply(cbind(tsamp01),1,hhat,eta=rep(.5,q))
+  yD=knn.reg(train=cbind(tsamp01),test=cbind(D),y=pred,k=1)$pred
+  save(Y,pdet,tsamp,pred,D,yD,theta,file="data/9.1-plot.RData")
+} else load("data/9.1-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  matplot(pdet,t(Y),"l",xlab="time in seconds",ylab="mass uptake",main="Functional Output")
+  plot(tsamp,pred,"l",ylim=range(Y),xlab="time in seconds",ylab="mass uptake",main="Mean Prediction")
+  points(cbind(D*120000,yD),pch=1,col="blue")
+}
+pdf("../figures/9.1.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/9.1.svg",width=8,height=4)
+draw()
+dev.off()
