@@ -1,0 +1,72 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/10.4-plot.RData")){
+  set.seed(6)
+  twin_manual=function(D,r){
+    n=nrow(D)
+    k=floor(n/r)
+    dist_mat=as.matrix(dist(D))
+    selected=integer(k)
+    poly_neigh=vector("list",k)
+    assigned=logical(n)
+    i0=which.max(rowSums(dist_mat))
+    selected[1]=i0
+    assigned[i0]=TRUE
+    idx_nei1=order(dist_mat[i0,])[2:(1+r-1)]
+    assigned[idx_nei1]=TRUE
+    poly_neigh[[1]]=idx_nei1
+    for(m in 2:k){
+      prev_test=selected[m-1]
+      nei_prev=poly_neigh[[m-1]]
+      d_to_prev=dist_mat[prev_test,nei_prev]
+      Q_idx=nei_prev[which.max(d_to_prev)]
+      unassigned=which(!assigned)
+      d_Q=dist_mat[Q_idx,unassigned]
+      next_test=unassigned[which.min(d_Q)]
+      selected[m]=next_test
+      assigned[next_test]=TRUE
+      new_nei=order(dist_mat[next_test,])
+      new_nei=new_nei[!assigned[new_nei]][1:(r-1)]
+      assigned[new_nei]=TRUE
+      poly_neigh[[m]]=new_nei
+    }
+    list(selected=selected,poly_neigh=poly_neigh)
+  }
+  N=50
+  x=scale(rnorm(N))
+  y=scale(x^2+rnorm(N))
+  D=cbind(x,y)
+  res=twin_manual(D,r=5)
+  ind_seq=res$selected
+  poly_neigh_list=res$poly_neigh
+  dist_mat=as.matrix(dist(D))
+  save(D,ind_seq,poly_neigh_list,file="data/10.4-plot.RData")
+} else load("data/10.4-plot.RData")
+col_set=c("#e898c2","#c8a2d0","#e9ad88","#92c8b4","#d8b870","#e48888","#82c2d0","#b4a8e0","#a2d898","#f2bc88")
+draw=function(){
+  par(mfrow=c(1,3))
+  plot_iter=function(iter_max,mainlab){
+    plot(D,pch=16,xlab="x",ylab="y",panel.first=grid(col="grey80"))
+    for(m in 1:iter_max){
+      this_test_idx=ind_seq[m]
+      neigh_idx=poly_neigh_list[[m]]
+      poly_pts=D[c(this_test_idx,neigh_idx),]
+      ch=chull(poly_pts)
+      polygon(poly_pts[ch,],col=adjustcolor(col_set[m],alpha.f=0.4),border=NA)
+    }
+    sel=ind_seq[1:iter_max]
+    pts_sel=D[sel,,drop=FALSE]
+    points(pts_sel,col=2)
+    text(x=pts_sel[,1],y=pts_sel[,2]-0.12,labels=1:iter_max,col=1,font=2)
+  }
+  plot_iter(1,"(A) Iteration 1")
+  plot_iter(2,"(B) Iteration 2")
+  plot_iter(10,"(C) Iteration 10")
+}
+pdf("../figures/10.4.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/10.4.svg",width=12,height=4)
+draw()
+dev.off()

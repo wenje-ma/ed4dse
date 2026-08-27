@@ -1,0 +1,42 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/10.5-plot.RData")){
+  set.seed(4)
+  library(twinning)
+  library(SPlit)
+  library(BalancedSampling)
+  N=1000
+  X=matrix(rnorm(2*N),ncol=2)
+  n=100
+  edsplit=edtwin=edlpm1=edlpm2=numeric(30)
+  sbsplit=sbtwin=sblpm1=sblpm2=numeric(30)
+  for(i in 1:30){
+    ind=SPlit(X,splitRatio=n/N)
+    edsplit[i]=energy(X,X[ind,])
+    sbsplit[i]=sb(rep(n/N,N),X,ind)
+    ind=twin(X,r=N/n)
+    edtwin[i]=energy(X,X[ind,])
+    sbtwin[i]=sb(rep(n/N,N),X,ind)
+    ind=lpm1(rep(n/N,N),X)
+    edlpm1[i]=energy(X,X[ind,])
+    sblpm1[i]=sb(rep(n/N,N),X,ind)
+    ind=lpm2(rep(n/N,N),X)
+    edlpm2[i]=energy(X,X[ind,])
+    sblpm2[i]=sb(rep(n/N,N),X,ind)
+  }
+  save(edsplit,edtwin,edlpm1,edlpm2,sbsplit,sbtwin,sblpm1,sblpm2,file="data/10.5-plot.RData")
+} else load("data/10.5-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  ed=data.frame(SPlit=edsplit,twin=edtwin,LPM1=edlpm1,LPM2=edlpm2)
+  boxplot(ed,main="Energy Distance",xlab="sampling methods",ylab="energy distance",col=c("yellow",2:4))
+  sbmeasure=data.frame(SPlit=sbsplit,twin=sbtwin,LPM1=sblpm1,LPM2=sblpm2)
+  boxplot(sbmeasure,main="Spatial Balance",xlab="sampling methods",ylab="spatial balance measure",col=c("yellow",2:4))
+}
+pdf("../figures/10.5.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/10.5.svg",width=8,height=4)
+draw()
+dev.off()

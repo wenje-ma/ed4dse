@@ -1,0 +1,33 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/10.3-plot.RData")){
+  library(SPlit)
+  set.seed(102)
+  N=100
+  x1=scale(rnorm(N))
+  x2=scale(x1^2+rnorm(N))
+  D=matrix(cbind(x1,x2),ncol=2)
+  Ntest=20
+  y=rep(2,N)
+  y[rbinom(N,1,pnorm(-(6*x1+x2+5)))==1]=1
+  y[rbinom(N,1,pnorm(-(-6*x1+x2+5)))==1]=3
+  Dy=data.frame(x1=D[,1],x2=D[,2],y=as.factor(y))
+  ind.opt=SPlit(Dy,splitRatio=.2)
+  ind=sample(1:N,Ntest)
+  save(x1,x2,y,D,ind,ind.opt,file="data/10.3-plot.RData")
+} else load("data/10.3-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(x1,x2,pch=y+1,col=y+1,main="Random",xlab=expression(x[1]),ylab=expression(x[2]))
+  points(D[ind,],col=1,pch=1)
+  Dtest=D[ind.opt,1:2]
+  plot(x1,x2,pch=y+1,col=y+1,main="SPlit",xlab=expression(x[1]),ylab=expression(x[2]))
+  points(Dtest,col=1,pch=1)
+}
+pdf("../figures/10.3.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/10.3.svg",width=8,height=4)
+draw()
+dev.off()

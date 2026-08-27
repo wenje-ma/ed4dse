@@ -1,0 +1,30 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/10.1-plot.RData")){
+  library(support)
+  library(SPlit)
+  library(MASS)
+  set.seed(123)
+  N=1000;p=2;rho=.5
+  Sigma=diag(p)
+  Sigma=rho^abs(row(Sigma)-col(Sigma))
+  D=mvrnorm(n=N,mu=rep(0,p),Sigma=Sigma)
+  n=100
+  S=sp(n,p,dist.samp=D)$sp
+  ind=subsample(D,S)
+  save(D,S,ind,file="data/10.1-plot.RData")
+} else load("data/10.1-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(D,pch=4,main="Support Points",xlab="x",ylab="y")
+  points(S,pch=1,col=2)
+  plot(D,pch=4,main="Subsample",xlab="x",ylab="y")
+  points(D[ind,],pch=1,col=2)
+}
+pdf("../figures/10.1.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/10.1.svg",width=8,height=4)
+draw()
+dev.off()

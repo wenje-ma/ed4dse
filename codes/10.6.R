@@ -1,0 +1,55 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+library(fields)
+library(deldir)
+if(!file.exists("data/10.6-plot.RData")){
+  library(supercompress)
+  library(FNN)
+  set.seed(1)
+  f=function(x){
+    p=length(x)
+    x=pi*x
+    val=-sum(sin(x)*(sin((1:p)*x^2/pi))^(20))
+    return(val)
+  }
+  p=2
+  N=10000*p
+  x=NULL
+  for(i in 1:p) x=cbind(x,runif(N))
+  y=apply(x,1,f)+.01*rnorm(N)
+  n=200
+  true=apply(x,1,f)
+  N.plot=250
+  p1=seq(0,1,length=N.plot)
+  p2=seq(0,1,length=N.plot)
+  fc=matrix(apply(expand.grid(p1,p2),1,f),nrow=N.plot,ncol=N.plot)
+  system.time({
+    a0=kmeans(x,n,iter.max=100)})
+  D0=a0$centers
+  cluster=a0$cluster
+  y0=sapply(split(y,cluster),mean)
+  pred.nn=knn.reg(D0,test=x,y0,k=1)$pred
+  system.time({a=supercompress(n,x,y)})
+  Dopt=a$D
+  ybar=a$ybar
+  pred.nn=knn.reg(Dopt,test=x,ybar,k=1)$pred
+  save(p1,p2,fc,D0,Dopt,file="data/10.6-plot.RData")
+} else load("data/10.6-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  imagePlot(p1,p2,fc,col=cm.colors(5),xlab=expression(x[1]),ylab=expression(x[2]),main="unsupervised")
+  points(D0,pch=16,col=1)
+  vor=deldir(D0[,1],D0[,2])
+  plot.deldir(vor,add=TRUE,wlines="tess")
+  imagePlot(p1,p2,fc,col=cm.colors(5),xlab=expression(x[1]),ylab=expression(x[2]),main="supervised")
+  points(Dopt,pch=16,col=1)
+  vor=deldir(Dopt[,1],Dopt[,2])
+  plot.deldir(vor,add=TRUE,wlines="tess")
+}
+pdf("../figures/10.6.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/10.6.svg",width=8,height=4)
+draw()
+dev.off()

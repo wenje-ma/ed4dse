@@ -1,0 +1,34 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/10.2-plot.RData")){
+  library(rkriging)
+  library(support)
+  library(SPlit)
+  set.seed(123)
+  wind=read.csv("data/wind10.csv",header=TRUE)
+  p=2
+  D=as.matrix(wind[,-1])
+  n=392
+  system.time({S=sp(n,p,dist.samp=D)$sp
+    ind=subsample(D,S)})
+  S=D[ind,]
+  pdf(NULL)
+  system.time({a=Fit.Kriging(X=cbind(S[,1]),y=S[,2],kernel.parameters=list(type="Gaussian"),interpolation=FALSE)})
+  dev.off()
+  ev=seq(min(D[,1]),max(D[,1]),length=1000)
+  pred=Predict.Kriging(a,cbind(ev))$mean
+  save(D,S,ev,pred,file="data/10.2-plot.RData")
+} else load("data/10.2-plot.RData")
+draw=function(){
+  plot(D,pch=4,main="wind power data",xlab="speed",ylab="power")
+  points(S,col=2)
+  lines(ev,pred,col=4)
+  legend("bottomright",legend=c("data","subsample","GP"),bty="n",pch=c(4,1,NA),lty=c(NA,NA,1),col=c(1,2,4))
+}
+pdf("../figures/10.2.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/10.2.svg",width=4,height=4)
+draw()
+dev.off()
