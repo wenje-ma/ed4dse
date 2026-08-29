@@ -1,0 +1,46 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/11.2-plot.RData")){
+  library(SPlit)
+  library(randomForest)
+  library(rkriging)
+  library(first)
+  set.seed(123)
+  concrete=read.csv(file="data/Concrete_Data.csv",fileEncoding="UTF-8-BOM")
+  concrete.scale=data.frame(scale(concrete))
+  rmse.RF=matrix(0,nrow=30,ncol=2)
+  rmse.GP=matrix(0,nrow=30,ncol=2)
+  for(i in 1:30){
+    ind=SPlit(concrete,splitRatio=0.1)
+    train=concrete.scale[-ind,]
+    test=concrete.scale[ind,]
+    a=randomForest(x=train[,1:8],y=train[,9])
+    pred=predict(a,test[,1:8])
+    rmse.RF[i,1]=sqrt(mean((test$y-pred)^2))
+    a=Fit.Kriging(X=train[,1:8],y=train[,9],interpolation=FALSE,kernel.parameters=list(type="Gaussian"))
+    pred=Predict.Kriging(a,test[,1:8])$mean
+    rmse.GP[i,1]=sqrt(mean((test$y-pred)^2))
+    sel=first(X=train[,-9],y=train[,9])
+    sel=(sel>0)
+    a=randomForest(x=train[,-9][,sel],y=train[,9])
+    pred=predict(a,test[,-9][,sel])
+    rmse.RF[i,2]=sqrt(mean((test$y-pred)^2))
+    a=Fit.Kriging(X=train[,-9][,sel],y=train[,9],interpolation=FALSE,kernel.parameters=list(type="Gaussian"))
+    pred=Predict.Kriging(a,test[,-9][,sel])$mean
+    rmse.GP[i,2]=sqrt(mean((test$y-pred)^2))
+  }
+  save(rmse.RF,rmse.GP,file="data/11.2-plot.RData")
+}
+load("data/11.2-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  boxplot(data.frame(full=rmse.RF[,1],select=rmse.RF[,2]),ylim=c(0,0.37),main="Random Forest",ylab="RMSE",col=c(2,3))
+  boxplot(data.frame(full=rmse.GP[,1],select=rmse.GP[,2]),ylim=c(0,0.37),main="Gaussian Process",ylab="RMSE",col=c(2,3))
+}
+pdf("../figures/11.2.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/11.2.svg",width=8,height=4)
+draw()
+dev.off()

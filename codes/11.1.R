@@ -1,0 +1,37 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/11.1-plot.RData")){
+  library(MASS)
+  set.seed(123)
+  x_vals=seq(0,1,length=1000)
+  x_vals2=seq(-1,1,length=1000)
+  curve1_y=sqrt(2)*x_vals
+  curve2_y=2/sqrt(3)*x_vals
+  curve3_y=1*x_vals
+  curve4_y=2*(1-x_vals2^2)
+  curve5_y=4/3*(1-x_vals2^2)
+  save(x_vals,x_vals2,curve1_y,curve2_y,curve3_y,curve4_y,curve5_y,file="data/11.1-plot.RData")
+}
+load("data/11.1-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(x_vals,curve1_y,type="l",col=2,main="Effects",xlab="x",ylab="y",xlim=c(0,1),ylim=c(0,1.5))
+  lines(x_vals,curve2_y,col=3)
+  lines(x_vals,curve3_y,col=4)
+  text(0.8,1.22,expression(x[1]),col=2)
+  text(0.8,1.0,expression(x[2]),col=3)
+  text(0.8,0.7,expression(x[3]),col=4)
+  plot(x_vals2,curve4_y,type="l",col=2,main="Total Sobol'",xlab=expression(rho),ylab=expression(V^tot),xlim=c(-1,1),ylim=c(0,2.2))
+  lines(x_vals2,curve5_y,col=3)
+  abline(h=1,col=4)
+  text(0,1.9,expression(x[1]),col=2)
+  text(0,1.4,expression(x[2]),col=3)
+  text(0,0.9,expression(x[3]),col=4)
+}
+pdf("../figures/11.1.pdf",width=8,height=4)
+draw()
+dev.off()
+svg("../figures/11.1.svg",width=8,height=4)
+draw()
+dev.off()

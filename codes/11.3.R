@@ -1,0 +1,26 @@
+setwd("D:/wenje-ma/ED4DSE/codes")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
+if(!file.exists("data/11.3-plot.RData")){
+  library(twingp)
+  wind=read.csv("data/wind10.csv",header=TRUE)
+  D=as.matrix(wind[,-1])
+  ev=seq(min(D[,1]),max(D[,1]),length=1000)
+  set.seed(123)
+  system.time({
+    a.twin=twingp(x=cbind(D[,1]),y=D[,2],x_test=cbind(ev))
+  })
+  pred.twin=a.twin$mu
+  save(D,ev,pred.twin,file="data/11.3-plot.RData")
+}
+load("data/11.3-plot.RData")
+draw=function(){
+  plot(D,pch=4,main="TwinGP",xlab="speed",ylab="power")
+  lines(ev,pred.twin,col=4)
+}
+pdf("../figures/11.3.pdf",width=4,height=4)
+draw()
+dev.off()
+svg("../figures/11.3.svg",width=4,height=4)
+draw()
+dev.off()
