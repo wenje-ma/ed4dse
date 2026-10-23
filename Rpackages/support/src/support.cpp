@@ -502,7 +502,7 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 
 // // [[Rcpp::export]]
 // NumericMatrix thincpp(NumericMatrix& Rcpp_point, arma::mat& Rcpp_inides, int num_subsamp,
-//              NumericMatrix& bound, int it_max, int inn_it_max, double innertol, double outertol, double epsilon, double rate,
+//              NumericMatrix& bound, int it_max, int inn_it_max, double innertol, double outertol, double varepsilon, double rate,
 //              int num_proc) 
 //   {
 //   // Description of Inputs:
@@ -591,7 +591,7 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 //               tmpvec[n] = des[n+m*dim_num] - des[n+o*dim_num];
 //               tmptol += pow(tmpvec[n],2);
 //             }
-//             tmptol = sqrt(tmptol+epsilon);
+//             tmptol = sqrt(tmptol+varepsilon);
 //             
 //             for (int n=0; n<dim_num; n++){
 //               xprime[n] += tmpvec[n]/tmptol;
@@ -625,7 +625,7 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 //             tmptol += tmpvec[n];
 //           }
 //           //            Rcout << "tmptol: " << tmptol << endl;
-//           tmptol = sqrt(tmptol+epsilon);
+//           tmptol = sqrt(tmptol+varepsilon);
 //           tmpconst += 1.0/tmptol;
 //           
 //           for (int n=0; n<dim_num; n++){
@@ -2106,7 +2106,7 @@ NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
 
 
 // void std_largep_cpp(arma::mat& Rcpp_inides, 
-//                     int it_max, int inn_it_max, double innertol, double outertol, double epsilon, double rate,
+//                     int it_max, int inn_it_max, double innertol, double outertol, double varepsilon, double rate,
 //                     int num_proc) {
 //   // Description of Inputs:
 //   // Rcpp_point          - Sample data
@@ -2186,7 +2186,7 @@ NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
 //               tmpvec[n] = des[n+m*dim_num] - des[n+o*dim_num];
 //               tmptol += pow(tmpvec[n],2);
 //             }
-//             tmptol = sqrt(tmptol+epsilon);
+//             tmptol = sqrt(tmptol+varepsilon);
 //             
 //             for (int n=0; n<dim_num; n++){
 //               xprime[n] += tmpvec[n]/tmptol;
@@ -2276,7 +2276,7 @@ NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
 // NumericMatrix thincpp_proj(NumericMatrix& distsamp, arma::mat& Rcpp_inides,
 //                            double gam_shape, double gam_rate, arma::vec& gamma_vec, int max_ord,
 //                            NumericMatrix& bd, int num_subsamp, int gam_point_num, int it_max, int inn_it_max, 
-//                            double innertol, double outertol,double epsilon, double rate, int num_proc){
+//                            double innertol, double outertol,double varepsilon, double rate, int num_proc){
 //   
 //   // Description of Inputs:
 //   // Rcpp_point          - Sample data
@@ -2557,7 +2557,7 @@ NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
 
 // // [[Rcpp::export]]
 // NumericMatrix unif_largep(NumericMatrix& Rcpp_inides,
-//                           int it_max, int inn_it_max, double innertol, double outertol, double epsilon, double rate,
+//                           int it_max, int inn_it_max, double innertol, double outertol, double varepsilon, double rate,
 //                           int num_proc) {
 //   int des_num = Rcpp_inides.nrow();
 //   int dim_num = Rcpp_inides.ncol();
@@ -2569,7 +2569,7 @@ NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
 //   }
 //   
 //   //Do SBD
-//   unif_largep_cpp(inides, it_max, inn_it_max, innertol, outertol, epsilon, rate, num_proc);
+//   unif_largep_cpp(inides, it_max, inn_it_max, innertol, outertol, varepsilon, rate, num_proc);
 //   
 //   //Return matrix
 //   NumericMatrix retdes(des_num, dim_num);
