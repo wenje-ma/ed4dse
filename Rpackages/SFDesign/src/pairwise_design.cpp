@@ -608,7 +608,7 @@ public:
 // These functions take a design matrix and parameters, then call the respective optimizer.
 //---------------------------------------------------------------------------
 // Helper function to convert Rcpp NumericMatrix to native C++ double**
-double** rcppMatrixToNative(const NumericMatrix &design_R) {
+double** rcpbmatrixToNative(const NumericMatrix &design_R) {
   int nrows = design_R.nrow();
   int ncols = design_R.ncol();
   double **design = new double*[ncols];
@@ -636,7 +636,7 @@ List maximinLHDOptimizer_cpp(NumericMatrix design, int power = 15, int num_passe
   int nrows = design.nrow();
   int ncols = design.ncol();
   
-  double **design_native = rcppMatrixToNative(design);
+  double **design_native = rcpbmatrixToNative(design);
   
   MaximinLHDOptimizer optimizer(design_native, nrows, ncols, power, num_passes, (int)max_iter,
                                 temp, decay, no_update_iter_max, method);
@@ -656,7 +656,7 @@ List maxproLHDOptimizer_cpp(NumericMatrix design, double s = 2,
   int nrows = design.nrow();
   int ncols = design.ncol();
   
-  double **design_native = rcppMatrixToNative(design);
+  double **design_native = rcpbmatrixToNative(design);
   
   MaxProLHDOptimizer optimizer(design_native, nrows, ncols, (int)s, num_passes, (int)max_iter,
                                temp, decay, no_update_iter_max, method);
@@ -675,7 +675,7 @@ List uniformLHDOptimizer_cpp(NumericMatrix design, int num_passes = 10, int max_
   int nrows = design.nrow();
   int ncols = design.ncol();
   
-  double **design_native = rcppMatrixToNative(design);
+  double **design_native = rcpbmatrixToNative(design);
   
   UniformLHDOptimizer optimizer(design_native, nrows, ncols, num_passes, (int)max_iter,
                                 temp, decay, no_update_iter_max, method);
