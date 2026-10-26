@@ -29,9 +29,15 @@ if(!file.exists("data/5.8-plot.RData")){
   save(true,mc,y,file="data/5.8-plot.RData")
 }
 load("data/5.8-plot.RData")
+draw=function(){
+  plot(density(true),lty=3,xlim=c(0,200),xlab="y",main="Output Distribution")
+  lines(density(mc),col=2,lty=2)
+  lines(density(y),col=3)
+  legend("topright",legend=c("Truth","MC","Support Points"),col=c(1,2,3),lty=c(3,2,1),bty="n")
+}
 pdf("../figures/5.8.pdf",width=4,height=4)
-plot(density(true),lty=3,xlim=c(0,200),xlab="y",main="Output Distribution")
-lines(density(mc),col=2,lty=2)
-lines(density(y),col=3)
-legend("topright",legend=c("Truth","MC","Support Points"),col=c(1,2,3),lty=c(3,2,1),bty="n")
+draw()
+dev.off()
+svg("../figures/5.8.svg",width=4,height=4)
+draw()
 dev.off()

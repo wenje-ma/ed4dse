@@ -17,20 +17,26 @@ if(!file.exists("data/6.6-plot.RData")){
   save(D1,D2,A1,C11,C12,A2,C21,C22,file="data/6.6-plot.RData")
 }
 load("data/6.6-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(A1,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Sobol' Design (seed 3)")
+  points(C11,col=2,pch=2)
+  points(C12,col=3,pch=3)
+  for(i in 1:4){
+    arrows(D1[i,1],D1[i,2],D1[i+4,1],D1[i+4,2],col=4)
+    arrows(D1[i,1],D1[i,2],D1[i+8,1],D1[i+8,2],col=4)
+  }
+  plot(A2,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Sobol' Design (seed 1)")
+  points(C21,col=2,pch=2)
+  points(C22,col=3,pch=3)
+  for(i in 1:4){
+    arrows(D2[i,1],D2[i,2],D2[i+4,1],D2[i+4,2],col=4)
+    arrows(D2[i,1],D2[i,2],D2[i+8,1],D2[i+8,2],col=4)
+  }
+}
 pdf("../figures/6.6.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-plot(A1,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Sobol' Design (seed 3)")
-points(C11,col=2,pch=2)
-points(C12,col=3,pch=3)
-for(i in 1:4){
-  arrows(D1[i,1],D1[i,2],D1[i+4,1],D1[i+4,2],col=4)
-  arrows(D1[i,1],D1[i,2],D1[i+8,1],D1[i+8,2],col=4)
-}
-plot(A2,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Sobol' Design (seed 1)")
-points(C21,col=2,pch=2)
-points(C22,col=3,pch=3)
-for(i in 1:4){
-  arrows(D2[i,1],D2[i,2],D2[i+4,1],D2[i+4,2],col=4)
-  arrows(D2[i,1],D2[i,2],D2[i+8,1],D2[i+8,2],col=4)
-}
+draw()
+dev.off()
+svg("../figures/6.6.svg",width=8,height=4)
+draw()
 dev.off()

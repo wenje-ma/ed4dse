@@ -46,25 +46,31 @@ methods=unique(wd$method)
 n=wd$n[wd$method==methods[1]]
 cols=c("firebrick2","dodgerblue3","forestgreen")
 pchs=c(16,17,15);ltys=1:3
+draw=function(){
+  par(mfrow=c(1,2),mar=c(4,4,3,1))
+  q.wd=get.quant(wd)
+  plot(0,type="n",xlim=range(n),ylim=range(q.wd),xlab="n",ylab="discrepancy",main="Discrepancy")
+  for(k in 1:3){
+    idx=wd$method==methods[k]
+    polygon(c(n,rev(n)),c(q.wd[idx,"l"],rev(q.wd[idx,"u"])),col=adjustcolor(cols[k],alpha.f=.4),border=NA)
+    lines(n,q.wd[idx,"m"],col=cols[k],lty=ltys[k])
+    points(n,q.wd[idx,"m"],col=cols[k],pch=pchs[k])
+  }
+  legend("topright",legend=c("MC","Sobol","Uniform"),col=cols,pch=pchs,fill=adjustcolor(cols,alpha.f=.4),border=NA,bty="n")
+  q.int=get.quant(integration)
+  plot(0,type="n",xlim=range(n),ylim=range(q.int),xlab="n",ylab="integration",main="Integration")
+  abline(h=true,lty=2,col="gray40")
+  for(k in 1:3){
+    idx=integration$method==methods[k]
+    polygon(c(n,rev(n)),c(q.int[idx,"l"],rev(q.int[idx,"u"])),col=adjustcolor(cols[k],alpha.f=.4),border=NA)
+    lines(n,q.int[idx,"m"],col=cols[k],lty=ltys[k])
+    points(n,q.int[idx,"m"],col=cols[k],pch=pchs[k])
+  }
+  legend("bottomright",legend=c("MC","Sobol","Uniform"),col=cols,pch=pchs,fill=adjustcolor(cols,alpha.f=.4),border=NA,bty="n")
+}
 pdf("../figures/5.3.pdf",width=8,height=4)
-par(mfrow=c(1,2),mar=c(4,4,3,1))
-q.wd=get.quant(wd)
-plot(0,type="n",xlim=range(n),ylim=range(q.wd),xlab="n",ylab="discrepancy",main="Discrepancy")
-for(k in 1:3){
-  idx=wd$method==methods[k]
-  polygon(c(n,rev(n)),c(q.wd[idx,"l"],rev(q.wd[idx,"u"])),col=adjustcolor(cols[k],alpha.f=.4),border=NA)
-  lines(n,q.wd[idx,"m"],col=cols[k],lty=ltys[k])
-  points(n,q.wd[idx,"m"],col=cols[k],pch=pchs[k])
-}
-legend("topright",legend=c("MC","Sobol","Uniform"),col=cols,pch=pchs,fill=adjustcolor(cols,alpha.f=.4),border=NA,bty="n")
-q.int=get.quant(integration)
-plot(0,type="n",xlim=range(n),ylim=range(q.int),xlab="n",ylab="integration",main="Integration")
-abline(h=true,lty=2,col="gray40")
-for(k in 1:3){
-  idx=integration$method==methods[k]
-  polygon(c(n,rev(n)),c(q.int[idx,"l"],rev(q.int[idx,"u"])),col=adjustcolor(cols[k],alpha.f=.4),border=NA)
-  lines(n,q.int[idx,"m"],col=cols[k],lty=ltys[k])
-  points(n,q.int[idx,"m"],col=cols[k],pch=pchs[k])
-}
-legend("bottomright",legend=c("MC","Sobol","Uniform"),col=cols,pch=pchs,fill=adjustcolor(cols,alpha.f=.4),border=NA,bty="n")
+draw()
+dev.off()
+svg("../figures/5.3.svg",width=8,height=4)
+draw()
 dev.off()

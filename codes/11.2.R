@@ -33,8 +33,14 @@ if(!file.exists("data/11.2-plot.RData")){
   save(rmse.RF,rmse.GP,file="data/11.2-plot.RData")
 }
 load("data/11.2-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  boxplot(data.frame(full=rmse.RF[,1],select=rmse.RF[,2]),ylim=c(0,0.37),main="Random Forest",ylab="RMSE",col=c(2,3))
+  boxplot(data.frame(full=rmse.GP[,1],select=rmse.GP[,2]),ylim=c(0,0.37),main="Gaussian Process",ylab="RMSE",col=c(2,3))
+}
 pdf("../figures/11.2.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-boxplot(data.frame(full=rmse.RF[,1],select=rmse.RF[,2]),ylim=c(0,0.37),main="Random Forest",ylab="RMSE",col=c(2,3))
-boxplot(data.frame(full=rmse.GP[,1],select=rmse.GP[,2]),ylim=c(0,0.37),main="Gaussian Process",ylab="RMSE",col=c(2,3))
+draw()
+dev.off()
+svg("../figures/11.2.svg",width=8,height=4)
+draw()
 dev.off()

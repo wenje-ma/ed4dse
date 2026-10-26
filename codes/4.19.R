@@ -65,6 +65,12 @@ if(!file.exists("data/4.19-plot.RData")){
   save(D,file="data/4.19-plot.RData")
 }
 load("data/4.19-plot.RData")
+draw=function(){
+  pairs(D,pch=ifelse(D[,"branch"]==0,4,16),col=ifelse(D[,"branch"]==0,"red","blue"))
+}
 pdf("../figures/4.19.pdf",width=4,height=4)
-pairs(D,pch=ifelse(D[,"branch"]==0,4,16),col=ifelse(D[,"branch"]==0,"red","blue"))
+draw()
+dev.off()
+svg("../figures/4.19.svg",width=4,height=4)
+draw()
 dev.off()

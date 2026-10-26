@@ -17,11 +17,17 @@ if(!file.exists("data/10.3-plot.RData")){
   ind=sample(1:N,Ntest)
   save(x1,x2,y,D,ind,ind.opt,file="data/10.3-plot.RData")
 } else load("data/10.3-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(x1,x2,pch=y+1,col=y+1,main="Random",xlab=expression(x[1]),ylab=expression(x[2]))
+  points(D[ind,],col=1,pch=1)
+  Dtest=D[ind.opt,1:2]
+  plot(x1,x2,pch=y+1,col=y+1,main="SPlit",xlab=expression(x[1]),ylab=expression(x[2]))
+  points(Dtest,col=1,pch=1)
+}
 pdf("../figures/10.3.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-plot(x1,x2,pch=y+1,col=y+1,main="Random",xlab=expression(x[1]),ylab=expression(x[2]))
-points(D[ind,],col=1,pch=1)
-Dtest=D[ind.opt,1:2]
-plot(x1,x2,pch=y+1,col=y+1,main="SPlit",xlab=expression(x[1]),ylab=expression(x[2]))
-points(Dtest,col=1,pch=1)
+draw()
+dev.off()
+svg("../figures/10.3.svg",width=8,height=4)
+draw()
 dev.off()

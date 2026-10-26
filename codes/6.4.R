@@ -31,20 +31,26 @@ if(!file.exists("data/6.4-plot.RData")){
   save(A,C11,C12,C21,C22,file="data/6.4-plot.RData")
 }
 load("data/6.4-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(A,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Morris Design (Strict OFAT)")
+  points(C11,col=2,pch=2)
+  points(C12,col=3,pch=3)
+  for(i in 1:4){
+    arrows(A[i,1],A[i,2],C11[i,1],C11[i,2],col=4,lty=1)
+    arrows(C11[i,1],C11[i,2],C12[i,1],C12[i,2],col=4,lty=1)
+  }
+  plot(A,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Morris Design (Standard OFAT)")
+  points(C21,col=2,pch=2)
+  points(C22,col=3,pch=3)
+  for(i in 1:4){
+    arrows(A[i,1],A[i,2],C21[i,1],C21[i,2],col=4,lty=1)
+    arrows(A[i,1],A[i,2],C22[i,1],C22[i,2],col=4,lty=1)
+  }
+}
 pdf("../figures/6.4.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-plot(A,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Morris Design (Strict OFAT)")
-points(C11,col=2,pch=2)
-points(C12,col=3,pch=3)
-for(i in 1:4){
-  arrows(A[i,1],A[i,2],C11[i,1],C11[i,2],col=4,lty=1)
-  arrows(C11[i,1],C11[i,2],C12[i,1],C12[i,2],col=4,lty=1)
-}
-plot(A,xlab=expression(x[1]),ylab=expression(x[2]),xlim=c(0,1),ylim=c(0,1),main="Morris Design (Standard OFAT)")
-points(C21,col=2,pch=2)
-points(C22,col=3,pch=3)
-for(i in 1:4){
-  arrows(A[i,1],A[i,2],C21[i,1],C21[i,2],col=4,lty=1)
-  arrows(A[i,1],A[i,2],C22[i,1],C22[i,2],col=4,lty=1)
-}
+draw()
+dev.off()
+svg("../figures/6.4.svg",width=8,height=4)
+draw()
 dev.off()

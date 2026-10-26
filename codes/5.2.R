@@ -12,9 +12,15 @@ if(!file.exists("data/5.2-plot.RData")){
   save(R,S,D,file="data/5.2-plot.RData")
 }
 load("data/5.2-plot.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  plot(R,pch=16,col=4,main="Monte Carlo",xlab=expression(x[1]),ylab=expression(x[2]))
+  plot(S,pch=16,col=4,main="Sobol Sequence",xlab=expression(x[1]),ylab=expression(x[2]))
+  plot(D,pch=16,col=4,main="Uniform Design",xlab=expression(x[1]),ylab=expression(x[2]))
+}
 pdf("../figures/5.2.pdf",width=12,height=4)
-par(mfrow=c(1,3))
-plot(R,pch=16,col=4,main="Monte Carlo",xlab=expression(x[1]),ylab=expression(x[2]))
-plot(S,pch=16,col=4,main="Sobol Sequence",xlab=expression(x[1]),ylab=expression(x[2]))
-plot(D,pch=16,col=4,main="Uniform Design",xlab=expression(x[1]),ylab=expression(x[2]))
+draw()
+dev.off()
+svg("../figures/5.2.svg",width=12,height=4)
+draw()
 dev.off()

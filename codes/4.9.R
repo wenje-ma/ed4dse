@@ -10,22 +10,28 @@ if(!file.exists("data/4.9-plot.RData")){
   save(D1,D2,n,file="data/4.9-plot.RData")
 }
 load("data/4.9-plot.RData")
+draw=function(){
+  par(mar=c(5,5,4,2))
+  par(mfrow=c(1,2))
+  plot(D1,pch=16,bty="n",col="blue",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="MmLHD",asp=1)
+  for(i in 1:(n+1)){
+    segments((i-1)/n,0,(i-1)/n,1)
+    segments(0,(i-1)/n,1,(i-1)/n)
+  }
+  plot(D2,pch=16,bty="n",col="blue",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="Chebyshev-MmLHD",asp=1)
+  d1=sort(D2[,1])
+  l1=c(0,(d1[-1]+d1[-n])/2,1)
+  d2=sort(D2[,2])
+  l2=c(0,(d2[-1]+d2[-n])/2,1)
+  for(i in 1:(n+1)){
+    segments(l1[i],0,l1[i],1)
+    segments(0,l2[i],1,l2[i])
+  }
+  par(mfrow=c(1,1))
+}
 pdf("../figures/4.9.pdf",width=8,height=4)
-par(mar=c(5,5,4,2))
-par(mfrow=c(1,2))
-plot(D1,pch=16,bty="n",col="blue",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="MmLHD",asp=1)
-for(i in 1:(n+1)){
-  segments((i-1)/n,0,(i-1)/n,1)
-  segments(0,(i-1)/n,1,(i-1)/n)
-}
-plot(D2,pch=16,bty="n",col="blue",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="Chebyshev-MmLHD",asp=1)
-d1=sort(D2[,1])
-l1=c(0,(d1[-1]+d1[-n])/2,1)
-d2=sort(D2[,2])
-l2=c(0,(d2[-1]+d2[-n])/2,1)
-for(i in 1:(n+1)){
-  segments(l1[i],0,l1[i],1)
-  segments(0,l2[i],1,l2[i])
-}
-par(mfrow=c(1,1))
+draw()
+dev.off()
+svg("../figures/4.9.svg",width=8,height=4)
+draw()
 dev.off()

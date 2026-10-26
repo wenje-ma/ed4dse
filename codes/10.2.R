@@ -20,9 +20,15 @@ if(!file.exists("data/10.2-plot.RData")){
   pred=Predict.Kriging(a,cbind(ev))$mean
   save(D,S,ev,pred,file="data/10.2-plot.RData")
 } else load("data/10.2-plot.RData")
+draw=function(){
+  plot(D,pch=4,main="wind power data",xlab="speed",ylab="power")
+  points(S,col=2)
+  lines(ev,pred,col=4)
+  legend("bottomright",legend=c("data","subsample","GP"),bty="n",pch=c(4,1,NA),lty=c(NA,NA,1),col=c(1,2,4))
+}
 pdf("../figures/10.2.pdf",width=4,height=4)
-plot(D,pch=4,main="wind power data",xlab="speed",ylab="power")
-points(S,col=2)
-lines(ev,pred,col=4)
-legend("bottomright",legend=c("data","subsample","GP"),bty="n",pch=c(4,1,NA),lty=c(NA,NA,1),col=c(1,2,4))
+draw()
+dev.off()
+svg("../figures/10.2.svg",width=4,height=4)
+draw()
 dev.off()

@@ -44,38 +44,18 @@ if(!file.exists("data/7.5-plot.RData")){
   save(D,y,test,true,m.mean,m.low,m.up,m.ei,n,file="data/7.5-plot.RData")
 }
 load("data/7.5-plot.RData")
-pdf("../figures/7.5.pdf",width=12,height=4)
-par(mfrow=c(1,3))
-pred.mean=m.mean[,1]
-low=m.low[,1]
-up=m.up[,1]
-ei=m.ei[,1]
-plot(test,true,type="l",xlab="x",ylab="y",lty=3,col=3,ylim=c(min(true)-.25,max(true)+.5),main="Initial")
-polygon(c(test,rev(test)),c(low,rev(up)),col="lightgray",border="NA")
-lines(test,low,col="lightgray")
-lines(test,up,col="lightgray")
-lines(test,pred.mean,col=1,lty=2)
-points(cbind(D[1:n],y[1:n]),pch=16,col=4)
-lines(test,true,lty=3,col=3)
-legend("topleft",legend=c("truth","prediction","EI"),lty=c(3,2,1),col=c(3,1,2),bty="n")
-par(new=TRUE)
-plot(test,ei,"l",col=2,axes=FALSE,ylim=c(0,3*max(ei)),xlab="",ylab="")
-axis(side=4,at=pretty(range(3*ei)))
-mtext("EI",side=4,line=3,col=2)
-xnew=test[which.max(ei)]
-points(xnew,0,col=2,pch=8)
-for(i in 1:2){
-  pred.mean=m.mean[,i+1]
-  low=m.low[,i+1]
-  up=m.up[,i+1]
-  ei=m.ei[,i+1]
-  plot(test,true,type="l",xlab="x",ylab="y",lty=3,col=3,ylim=c(min(true)-.25,max(true)+.5),main=paste("Step",i))
+draw=function(){
+  par(mfrow=c(1,3))
+  pred.mean=m.mean[,1]
+  low=m.low[,1]
+  up=m.up[,1]
+  ei=m.ei[,1]
+  plot(test,true,type="l",xlab="x",ylab="y",lty=3,col=3,ylim=c(min(true)-.25,max(true)+.5),main="Initial")
   polygon(c(test,rev(test)),c(low,rev(up)),col="lightgray",border="NA")
   lines(test,low,col="lightgray")
   lines(test,up,col="lightgray")
   lines(test,pred.mean,col=1,lty=2)
   points(cbind(D[1:n],y[1:n]),pch=16,col=4)
-  text(cbind(D[(n+1):(n+i)],y[(n+1):(n+i)]),labels=(n+1):(n+i),col=4)
   lines(test,true,lty=3,col=3)
   legend("topleft",legend=c("truth","prediction","EI"),lty=c(3,2,1),col=c(3,1,2),bty="n")
   par(new=TRUE)
@@ -84,5 +64,31 @@ for(i in 1:2){
   mtext("EI",side=4,line=3,col=2)
   xnew=test[which.max(ei)]
   points(xnew,0,col=2,pch=8)
+  for(i in 1:2){
+    pred.mean=m.mean[,i+1]
+    low=m.low[,i+1]
+    up=m.up[,i+1]
+    ei=m.ei[,i+1]
+    plot(test,true,type="l",xlab="x",ylab="y",lty=3,col=3,ylim=c(min(true)-.25,max(true)+.5),main=paste("Step",i))
+    polygon(c(test,rev(test)),c(low,rev(up)),col="lightgray",border="NA")
+    lines(test,low,col="lightgray")
+    lines(test,up,col="lightgray")
+    lines(test,pred.mean,col=1,lty=2)
+    points(cbind(D[1:n],y[1:n]),pch=16,col=4)
+    text(cbind(D[(n+1):(n+i)],y[(n+1):(n+i)]),labels=(n+1):(n+i),col=4)
+    lines(test,true,lty=3,col=3)
+    legend("topleft",legend=c("truth","prediction","EI"),lty=c(3,2,1),col=c(3,1,2),bty="n")
+    par(new=TRUE)
+    plot(test,ei,"l",col=2,axes=FALSE,ylim=c(0,3*max(ei)),xlab="",ylab="")
+    axis(side=4,at=pretty(range(3*ei)))
+    mtext("EI",side=4,line=3,col=2)
+    xnew=test[which.max(ei)]
+    points(xnew,0,col=2,pch=8)
+  }
 }
+pdf("../figures/7.5.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/7.5.svg",width=12,height=4)
+draw()
 dev.off()

@@ -25,6 +25,12 @@ if(!file.exists("data/6.2-plot.RData")){
   save(nu,file="data/6.2-plot.RData")
 }
 load("data/6.2-plot.RData")
+draw=function(){
+  boxplot(nu,main="Derivative-based Sensitivity Measure",col="lightblue",ylab=expression(bar(nu)))
+}
 pdf("../figures/6.2.pdf",width=4,height=4)
-boxplot(nu,main="Derivative-based Sensitivity Measure",col="lightblue",ylab=expression(bar(nu)))
+draw()
+dev.off()
+svg("../figures/6.2.svg",width=4,height=4)
+draw()
 dev.off()

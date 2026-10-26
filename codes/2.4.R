@@ -35,10 +35,16 @@ if(!file.exists("data/2.4-plot.RData")){
   save(D,y,test,true,pred,low,up,file="data/2.4-plot.RData")
 }
 load("data/2.4-plot.RData")
+draw=function(){
+  plot(test,true,type="l",xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="Ordinary Kriging")
+  points(D,y,pch=16,col="blue")
+  lines(test,pred,col=3)
+  polygon(c(test,rev(test)),c(low,rev(up)),col=adjustcolor("red",alpha.f=0.2),border=NA)
+  legend("bottomright",legend=c("truth","prediction"),lty=c(2,1),col=c(1,3),bty="n")
+}
 pdf("../figures/2.4.pdf",width=4,height=4)
-plot(test,true,type="l",xlab="x",ylab="y",ylim=c(min(true)-.25,max(true)+.25),main="Ordinary Kriging")
-points(D,y,pch=16,col="blue")
-lines(test,pred,col=3)
-polygon(c(test,rev(test)),c(low,rev(up)),col=adjustcolor("red",alpha.f=0.2),border=NA)
-legend("bottomright",legend=c("truth","prediction"),lty=c(2,1),col=c(1,3),bty="n")
+draw()
+dev.off()
+svg("../figures/2.4.svg",width=4,height=4)
+draw()
 dev.off()

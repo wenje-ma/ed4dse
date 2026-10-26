@@ -44,23 +44,29 @@ if(!file.exists("data/10.4-plot.RData")){
   save(D,ind_seq,poly_neigh_list,file="data/10.4-plot.RData")
 } else load("data/10.4-plot.RData")
 col_set=c("#e898c2","#c8a2d0","#e9ad88","#92c8b4","#d8b870","#e48888","#82c2d0","#b4a8e0","#a2d898","#f2bc88")
-pdf("../figures/10.4.pdf",width=12,height=4)
-par(mfrow=c(1,3))
-plot_iter=function(iter_max,mainlab){
-  plot(D,pch=16,xlab="x",ylab="y",panel.first=grid(col="grey80"))
-  for(m in 1:iter_max){
-    this_test_idx=ind_seq[m]
-    neigh_idx=poly_neigh_list[[m]]
-    poly_pts=D[c(this_test_idx,neigh_idx),]
-    ch=chull(poly_pts)
-    polygon(poly_pts[ch,],col=adjustcolor(col_set[m],alpha.f=0.4),border=NA)
+draw=function(){
+  par(mfrow=c(1,3))
+  plot_iter=function(iter_max,mainlab){
+    plot(D,pch=16,xlab="x",ylab="y",panel.first=grid(col="grey80"))
+    for(m in 1:iter_max){
+      this_test_idx=ind_seq[m]
+      neigh_idx=poly_neigh_list[[m]]
+      poly_pts=D[c(this_test_idx,neigh_idx),]
+      ch=chull(poly_pts)
+      polygon(poly_pts[ch,],col=adjustcolor(col_set[m],alpha.f=0.4),border=NA)
+    }
+    sel=ind_seq[1:iter_max]
+    pts_sel=D[sel,,drop=FALSE]
+    points(pts_sel,col=2)
+    text(x=pts_sel[,1],y=pts_sel[,2]-0.12,labels=1:iter_max,col=1,font=2)
   }
-  sel=ind_seq[1:iter_max]
-  pts_sel=D[sel,,drop=FALSE]
-  points(pts_sel,col=2)
-  text(x=pts_sel[,1],y=pts_sel[,2]-0.12,labels=1:iter_max,col=1,font=2)
+  plot_iter(1,"(A) Iteration 1")
+  plot_iter(2,"(B) Iteration 2")
+  plot_iter(10,"(C) Iteration 10")
 }
-plot_iter(1,"(A) Iteration 1")
-plot_iter(2,"(B) Iteration 2")
-plot_iter(10,"(C) Iteration 10")
+pdf("../figures/10.4.pdf",width=12,height=4)
+draw()
+dev.off()
+svg("../figures/10.4.svg",width=12,height=4)
+draw()
 dev.off()

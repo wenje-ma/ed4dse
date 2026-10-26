@@ -135,10 +135,16 @@ if(!file.exists("data/4.26-plot.RData")){
   save(x1,x2,cand,feasible,file="data/4.26-plot.RData")
 }
 load("data/4.26-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(cand,col="blue",pch=16,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="full candidate set")
+  for(i in 1:3)lines(x1[i,],x2[i,],col=2)
+  plot(feasible,col="green",pch=16,xlim=c(.3,.8),ylim=c(.35,.55),xlab=expression(x[1]),ylab=expression(x[2]),main="feasible candidate set")
+  for(i in 1:3)lines(x1[i,],x2[i,],col=2)
+}
 pdf("../figures/4.26.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-plot(cand,col="blue",pch=16,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="full candidate set")
-for(i in 1:3)lines(x1[i,],x2[i,],col=2)
-plot(feasible,col="green",pch=16,xlim=c(.3,.8),ylim=c(.35,.55),xlab=expression(x[1]),ylab=expression(x[2]),main="feasible candidate set")
-for(i in 1:3)lines(x1[i,],x2[i,],col=2)
+draw()
+dev.off()
+svg("../figures/4.26.svg",width=8,height=4)
+draw()
 dev.off()

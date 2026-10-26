@@ -34,11 +34,17 @@ if(!file.exists("data/2.5-plot1.RData")){
   save(D,y,test,true,u1t,u2t,file="data/2.5-plot1.RData")
 }
 load("data/2.5-plot1.RData")
+draw=function(){
+  par(mfrow=c(1,3))
+  matplot(test,u1t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Prior Distribution")
+  matplot(test,u1t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Data")
+  points(D,y,pch=16,col="blue")
+  matplot(test,u2t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Posterior Distribution")
+  points(D,y,pch=16,col="blue")
+}
 pdf("../figures/2.5.pdf",width=12,height=4)
-par(mfrow=c(1,3))
-matplot(test,u1t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Prior Distribution")
-matplot(test,u1t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Data")
-points(D,y,pch=16,col="blue")
-matplot(test,u2t,type="l",xlab="x",ylab="y",col=2:6,ylim=c(min(true)-.25,max(true)+.25),main="Posterior Distribution")
-points(D,y,pch=16,col="blue")
+draw()
+dev.off()
+svg("../figures/2.5.svg",width=12,height=4)
+draw()
 dev.off()

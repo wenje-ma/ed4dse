@@ -47,8 +47,14 @@ if(!file.exists("data/9.4-plot.RData")){
   save(D,ind,Dnew,file="data/9.4-plot.RData")
 }
 load("data/9.4-plot.RData")
+draw=function(){
+  plot(D,xlim=c(0,1),ylim=c(0,1),main="Robust Design with Augmentation",xlab=expression(x[1]),ylab=expression(x[2]))
+  points(D[ind,],pch=16,col=4)
+  points(Dnew,col=2,pch=4)
+}
 pdf("../figures/9.4.pdf",width=4,height=4)
-plot(D,xlim=c(0,1),ylim=c(0,1),main="Robust Design with Augmentation",xlab=expression(x[1]),ylab=expression(x[2]))
-points(D[ind,],pch=16,col=4)
-points(Dnew,col=2,pch=4)
+draw()
+dev.off()
+svg("../figures/9.4.svg",width=4,height=4)
+draw()
 dev.off()

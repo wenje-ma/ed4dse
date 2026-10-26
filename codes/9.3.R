@@ -13,8 +13,14 @@ if(!file.exists("data/9.3-plot.RData")){
 } else {
   load("data/9.3-plot.RData")
 }
+draw=function(){
+  plot(sqrt(texp),yexp,main="Model Prediction vs Real Data",xlab=expression(sqrt(t)),ylab="mass uptake",type="l",lty=2)
+  lines(sqrt(pdet),best,col=2)
+  legend("bottomright",legend=c("measured","predicted"),col=c(1,2),lty=c(2,1),bty="n")
+}
 pdf("../figures/9.3.pdf",width=4,height=4)
-plot(sqrt(texp),yexp,main="Model Prediction vs Real Data",xlab=expression(sqrt(t)),ylab="mass uptake",type="l",lty=2)
-lines(sqrt(pdet),best,col=2)
-legend("bottomright",legend=c("measured","predicted"),col=c(1,2),lty=c(2,1),bty="n")
+draw()
+dev.off()
+svg("../figures/9.3.svg",width=4,height=4)
+draw()
 dev.off()

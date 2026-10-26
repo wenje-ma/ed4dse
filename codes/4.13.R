@@ -15,9 +15,15 @@ if(!file.exists("data/4.13-plot.RData")){
   save(d0,d1,shape1,shape2,p=p,file="data/4.13-plot.RData")
 }
 load("data/4.13-plot.RData")
+draw=function(){
+  hist(d0,prob=TRUE,xlim=c(0,sqrt(p)),col=rgb(1,0,0,1/4),xlab="pairwise distance",ylab="Density",main="distance distribution")
+  hist(d1,prob=TRUE,col=rgb(0,0,1,1/4),breaks=30,add=TRUE)
+  curve(dbeta(x/sqrt(p),shape1,shape2)/sqrt(p),from=0,to=sqrt(p),add=TRUE,col=3)
+  legend("topleft",legend=c("Maximin","MaxPro","Beta(10.1,12.7)"),col=c(rgb(1,0,0,1/4),rgb(0,0,1,1/4),3),lty=c(1,1,1),bty="n")
+}
 pdf("../figures/4.13.pdf",width=4,height=4)
-hist(d0,prob=TRUE,xlim=c(0,sqrt(p)),col=rgb(1,0,0,1/4),xlab="pairwise distance",ylab="Density",main="distance distribution")
-hist(d1,prob=TRUE,col=rgb(0,0,1,1/4),breaks=30,add=TRUE)
-curve(dbeta(x/sqrt(p),shape1,shape2)/sqrt(p),from=0,to=sqrt(p),add=TRUE,col=3)
-legend("topleft",legend=c("Maximin","MaxPro","Beta(10.1,12.7)"),col=c(rgb(1,0,0,1/4),rgb(0,0,1,1/4),3),lty=c(1,1,1),bty="n")
+draw()
+dev.off()
+svg("../figures/4.13.svg",width=4,height=4)
+draw()
 dev.off()

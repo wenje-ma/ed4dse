@@ -127,7 +127,13 @@ if(!file.exists("data/4.27-plot.RData")){
   save(D,file="data/4.27-plot.RData")
 }
 load("data/4.27-plot.RData")
+draw=function(){
+  library(car)
+  scatterplotMatrix(D,diagonal=list(method="histogram",breaks=15),smooth=FALSE,regLine=FALSE,pch=16,var.labels=c(expression(x[1]),expression(x[2]),"t"))
+}
 pdf("../figures/4.27.pdf",width=4,height=4)
-library(car)
-scatterplotMatrix(D,diagonal=list(method="histogram",breaks=15),smooth=FALSE,regLine=FALSE,pch=16,var.labels=c(expression(x[1]),expression(x[2]),"t"))
+draw()
+dev.off()
+svg("../figures/4.27.svg",width=4,height=4)
+draw()
 dev.off()

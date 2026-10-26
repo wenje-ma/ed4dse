@@ -20,10 +20,16 @@ if(!file.exists("data/4.22-plot.RData")){
   save(CAND,D2,D,sizecode,file="data/4.22-plot.RData")
 }
 load("data/4.22-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(CAND,pch=16,col="pink",xlab="",ylab="",main="maximin design")
+  points(D2,pch=16,col="blue")
+  plot(CAND,pch=16,col="pink",xlab="",ylab="",main="minimum energy design")
+  points(D,pch=16,col="blue")
+}
 pdf("../figures/4.22.pdf",width=12,height=4)
-par(mfrow=c(1,2))
-plot(CAND,pch=16,col="pink",xlab="",ylab="",main="maximin design")
-points(D2,pch=16,col="blue")
-plot(CAND,pch=16,col="pink",xlab="",ylab="",main="minimum energy design")
-points(D,pch=16,col="blue")
+draw()
+dev.off()
+svg("../figures/4.22.svg",width=12,height=4)
+draw()
 dev.off()

@@ -18,8 +18,14 @@ if(!file.exists("data/5.5-plot.RData")){
   save(D,p1,p2,fc,file="data/5.5-plot.RData")
 }
 load("data/5.5-plot.RData")
+draw=function(){
+  image(p1,p2,fc,xlab=expression(x[1]),ylab=expression(x[2]),col=cm.colors(5),main="Correlated normal distribution",asp=1)
+  contour(p1,p2,fc,add=TRUE,nlevels=10)
+  points(D,pch=16,col="blue")
+}
 pdf("../figures/5.5.pdf",width=4,height=4)
-image(p1,p2,fc,xlab=expression(x[1]),ylab=expression(x[2]),col=cm.colors(5),main="Correlated normal distribution",asp=1)
-contour(p1,p2,fc,add=TRUE,nlevels=10)
-points(D,pch=16,col="blue")
+draw()
+dev.off()
+svg("../figures/5.5.svg",width=4,height=4)
+draw()
 dev.off()

@@ -45,11 +45,17 @@ if(!file.exists("data/9.2-plot.RData")){
   save(L,D,ind,file="data/9.2-plot.RData")
 }
 load("data/9.2-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(L,,pch=16,col=4,main="Locally D-optimal Design",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]))
+  text(L+.025,"2",col=2)
+  plot(D,xlim=c(0,1),ylim=c(0,1),main="Robust Design",xlab=expression(x[1]),ylab=expression(x[2]))
+  points(D[ind,],pch=16,col=4)
+  text(.025,.025,"2",col=2)
+}
 pdf("../figures/9.2.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-plot(L,,pch=16,col=4,main="Locally D-optimal Design",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]))
-text(L+.025,"2",col=2)
-plot(D,xlim=c(0,1),ylim=c(0,1),main="Robust Design",xlab=expression(x[1]),ylab=expression(x[2]))
-points(D[ind,],pch=16,col=4)
-text(.025,.025,"2",col=2)
+draw()
+dev.off()
+svg("../figures/9.2.svg",width=8,height=4)
+draw()
 dev.off()

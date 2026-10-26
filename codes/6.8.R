@@ -22,6 +22,12 @@ if(!file.exists("data/6.8-plot.RData")){
   save(mustar,file="data/6.8-plot.RData")
 }
 load("data/6.8-plot.RData")
+draw=function(){
+  boxplot(mustar,main="MOFAT design",col="lightblue",ylab=expression(mu^"*"))
+}
 pdf("../figures/6.8.pdf",width=4,height=4)
-boxplot(mustar,main="MOFAT design",col="lightblue",ylab=expression(mu^"*"))
+draw()
+dev.off()
+svg("../figures/6.8.svg",width=4,height=4)
+draw()
 dev.off()

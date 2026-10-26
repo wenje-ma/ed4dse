@@ -50,9 +50,15 @@ if(!file.exists("data/6.1-plot.RData")){
   save(x,x.ev,M,file="data/6.1-plot.RData")
 }
 load("data/6.1-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  barplot(x,col=c("lightblue","pink"),names.arg=paste0("x",1:8),legend.text=TRUE,args.legend=list("bty"="n"),ylab="Total Sobol' Index",main="Sobol' Indices")
+  matplot(x.ev,M,type="l",lty=1:4,col=1:4,xlab="x",ylab="Main Effects",main="Main Effects Plot")
+  legend("topleft",c("x1","x2","x3","x4","x5","x6","x7","x8"),bty="n",lty=1:4,col=1:4)
+}
 pdf("../figures/6.1.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-barplot(x,col=c("lightblue","pink"),names.arg=paste0("x",1:8),legend.text=TRUE,args.legend=list("bty"="n"),ylab="Total Sobol' Index",main="Sobol' Indices")
-matplot(x.ev,M,type="l",lty=1:4,col=1:4,xlab="x",ylab="Main Effects",main="Main Effects Plot")
-legend("topleft",c("x1","x2","x3","x4","x5","x6","x7","x8"),bty="n",lty=1:4,col=1:4)
+draw()
+dev.off()
+svg("../figures/6.1.svg",width=8,height=4)
+draw()
 dev.off()

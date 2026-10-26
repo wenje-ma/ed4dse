@@ -14,7 +14,13 @@ if(!file.exists("data/11.3-plot.RData")){
   save(D,ev,pred.twin,file="data/11.3-plot.RData")
 }
 load("data/11.3-plot.RData")
+draw=function(){
+  plot(D,pch=4,main="TwinGP",xlab="speed",ylab="power")
+  lines(ev,pred.twin,col=4)
+}
 pdf("../figures/11.3.pdf",width=4,height=4)
-plot(D,pch=4,main="TwinGP",xlab="speed",ylab="power")
-lines(ev,pred.twin,col=4)
+draw()
+dev.off()
+svg("../figures/11.3.svg",width=4,height=4)
+draw()
 dev.off()

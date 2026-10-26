@@ -19,7 +19,13 @@ if(!file.exists("data/4.1-plot.RData")){
   save(D,vor,file="data/4.1-plot.RData")
 }
 load("data/4.1-plot.RData")
+draw=function(){
+  plot(D,xlim=c(0,1),ylim=c(0,1),main="Clustering-based Design",xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue")
+  plot.deldir(vor,add=TRUE,wlines="tess",xlim=c(0,1),ylim=c(0,1),showpoints=FALSE)
+}
 pdf("../figures/4.1.pdf",width=4,height=4)
-plot(D,xlim=c(0,1),ylim=c(0,1),main="Clustering-based Design",xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue")
-plot.deldir(vor,add=TRUE,wlines="tess",xlim=c(0,1),ylim=c(0,1),showpoints=FALSE)
+draw()
+dev.off()
+svg("../figures/4.1.svg",width=4,height=4)
+draw()
 dev.off()

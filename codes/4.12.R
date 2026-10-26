@@ -29,11 +29,17 @@ if(!file.exists("data/4.12-plot.RData")){
   save(d1,d2,p,file="data/4.12-plot.RData")
 }
 load("data/4.12-plot.RData")
+draw=function(){
+  matplot(1:p,cbind(d1,d2),type="pp",pch=c(1,4),col=c(4,2),ylim=c(0,.55),bty="n",axes=FALSE,xlab="projection dimension",ylab="minimum of minimum distances")
+  axis(1,1:p)
+  axis(2,seq(0,.52,.1))
+  lines(d1,col=4)
+  lines(d2,lty=2,col=2)
+  legend("topleft",c("MaxPro","MmLHD"),pch=c(1,4),lty=c(1,2),bty="n",col=c(4,2))
+}
 pdf("../figures/4.12.pdf",width=4,height=4)
-matplot(1:p,cbind(d1,d2),type="pp",pch=c(1,4),col=c(4,2),ylim=c(0,.55),bty="n",axes=FALSE,xlab="projection dimension",ylab="minimum of minimum distances")
-axis(1,1:p)
-axis(2,seq(0,.52,.1))
-lines(d1,col=4)
-lines(d2,lty=2,col=2)
-legend("topleft",c("MaxPro","MmLHD"),pch=c(1,4),lty=c(1,2),bty="n",col=c(4,2))
+draw()
+dev.off()
+svg("../figures/4.12.svg",width=4,height=4)
+draw()
 dev.off()

@@ -27,10 +27,16 @@ if(!file.exists("data/10.5-plot.RData")){
   }
   save(edsplit,edtwin,edlpm1,edlpm2,sbsplit,sbtwin,sblpm1,sblpm2,file="data/10.5-plot.RData")
 } else load("data/10.5-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  ed=data.frame(SPlit=edsplit,twin=edtwin,LPM1=edlpm1,LPM2=edlpm2)
+  boxplot(ed,main="Energy Distance",xlab="sampling methods",ylab="energy distance",col=c("yellow",2:4))
+  sbmeasure=data.frame(SPlit=sbsplit,twin=sbtwin,LPM1=sblpm1,LPM2=sblpm2)
+  boxplot(sbmeasure,main="Spatial Balance",xlab="sampling methods",ylab="spatial balance measure",col=c("yellow",2:4))
+}
 pdf("../figures/10.5.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-ed=data.frame(SPlit=edsplit,twin=edtwin,LPM1=edlpm1,LPM2=edlpm2)
-boxplot(ed,main="Energy Distance",xlab="sampling methods",ylab="energy distance",col=c("yellow",2:4))
-sbmeasure=data.frame(SPlit=sbsplit,twin=sbtwin,LPM1=sblpm1,LPM2=sblpm2)
-boxplot(sbmeasure,main="Spatial Balance",xlab="sampling methods",ylab="spatial balance measure",col=c("yellow",2:4))
+draw()
+dev.off()
+svg("../figures/10.5.svg",width=8,height=4)
+draw()
 dev.off()

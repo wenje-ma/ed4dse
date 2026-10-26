@@ -109,9 +109,15 @@ if(!file.exists("data/9.1-plot.RData")){
   yD=knn.reg(train=cbind(tsamp01),test=cbind(D),y=pred,k=1)$pred
   save(Y,pdet,tsamp,pred,D,yD,theta,file="data/9.1-plot.RData")
 } else load("data/9.1-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  matplot(pdet,t(Y),"l",xlab="time in seconds",ylab="mass uptake",main="Functional Output")
+  plot(tsamp,pred,"l",ylim=range(Y),xlab="time in seconds",ylab="mass uptake",main="Mean Prediction")
+  points(cbind(D*120000,yD),pch=1,col="blue")
+}
 pdf("../figures/9.1.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-matplot(pdet,t(Y),"l",xlab="time in seconds",ylab="mass uptake",main="Functional Output")
-plot(tsamp,pred,"l",ylim=range(Y),xlab="time in seconds",ylab="mass uptake",main="Mean Prediction")
-points(cbind(D*120000,yD),pch=1,col="blue")
+draw()
+dev.off()
+svg("../figures/9.1.svg",width=8,height=4)
+draw()
 dev.off()

@@ -96,19 +96,25 @@ if(!file.exists("data/4.25-plot.RData")){
 }
 load("data/4.25-plot.RData")
 v=cbind(p1,p2)
+draw=function(){
+  par(mfrow=c(1,2))
+  fac=c(1.2,1)
+  k=1
+  u=max(c(den[,k],exact[,k]))*fac[k]
+  plot(density(theta[,k]),type="l",col=2,ylim=c(0,u),lty=1,main="",xlab=expression(theta[1]))
+  lines(v[,k],exact[,k],col=3,lty=1)
+  lines(v[,k],den[,k],col="blue")
+  legend("topleft",col=c(3,"blue",2),legend=c("True","Dolt","MCMC"),bty="n")
+  k=2
+  u=max(c(den[,k],exact[,k]))*fac[k]
+  plot(density(theta[,k]),type="l",col=2,ylim=c(0,u),lty=1,main="",xlab=expression(theta[2]))
+  lines(v[,k],exact[,k],col=3,lty=1)
+  lines(v[,k],den[,k],col="blue")
+  legend("topleft",col=c(3,"blue",2),lwd=c(1,1,1),legend=c("True","Dolt","MCMC"),bty="n")
+}
 pdf("../figures/4.25.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-fac=c(1.2,1)
-k=1
-u=max(c(den[,k],exact[,k]))*fac[k]
-plot(density(theta[,k]),type="l",col=2,ylim=c(0,u),lty=1,main="",xlab=expression(theta[1]))
-lines(v[,k],exact[,k],col=3,lty=1)
-lines(v[,k],den[,k],col="blue")
-legend("topleft",col=c(3,"blue",2),legend=c("True","Dolt","MCMC"),bty="n")
-k=2
-u=max(c(den[,k],exact[,k]))*fac[k]
-plot(density(theta[,k]),type="l",col=2,ylim=c(0,u),lty=1,main="",xlab=expression(theta[2]))
-lines(v[,k],exact[,k],col=3,lty=1)
-lines(v[,k],den[,k],col="blue")
-legend("topleft",col=c(3,"blue",2),lwd=c(1,1,1),legend=c("True","Dolt","MCMC"),bty="n")
+draw()
+dev.off()
+svg("../figures/4.25.svg",width=8,height=4)
+draw()
 dev.off()

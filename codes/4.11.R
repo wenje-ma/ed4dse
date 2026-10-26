@@ -11,6 +11,12 @@ if(!file.exists("data/4.11-plot.RData")){
   save(D,file="data/4.11-plot.RData")
 }
 load("data/4.11-plot.RData")
+draw=function(){
+  scatterplotMatrix(D,diagonal=list(method="histogram"),smooth=FALSE,regLine=FALSE,pch=16)
+}
 pdf("../figures/4.11.pdf",width=4,height=4)
-scatterplotMatrix(D,diagonal=list(method="histogram"),smooth=FALSE,regLine=FALSE,pch=16)
+draw()
+dev.off()
+svg("../figures/4.11.svg",width=4,height=4)
+draw()
 dev.off()

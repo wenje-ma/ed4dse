@@ -15,10 +15,16 @@ if(!file.exists("data/4.5-plot.RData")){
   save(D1,D2_choose,file="data/4.5-plot.RData")
 }
 load("data/4.5-plot.RData")
+draw=function(){
+  par(mfrow=c(1,2))
+  plot(D1,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue",asp=1)
+  plot(D1,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue",asp=1)
+  points(D2_choose,pch=4,col="red")
+  par(mfrow=c(1,1))
+}
 pdf("../figures/4.5.pdf",width=8,height=4)
-par(mfrow=c(1,2))
-plot(D1,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue",asp=1)
-plot(D1,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),pch=16,col="blue",asp=1)
-points(D2_choose,pch=4,col="red")
-par(mfrow=c(1,1))
+draw()
+dev.off()
+svg("../figures/4.5.svg",width=8,height=4)
+draw()
 dev.off()
