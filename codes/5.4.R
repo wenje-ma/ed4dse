@@ -1,18 +1,18 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/5.4-plot.RData")){
   p=2;n=50;N.plot=300
   set.seed(6)
   library(SFDesign)
   d=uniform.optim(uniformLHD(n,p)$design)$design
   D1=qnorm(d)
-  f1=function(x)exp(-.5*sum(x^2))/(2*pi)
+  f1=function(x) exp(-.5*sum(x^2))/(2*pi)
   p11=seq(-3,3,length.out=N.plot)
   p12=seq(-3,3,length.out=N.plot)
   fc1=matrix(apply(expand.grid(p11,p12),1,f1),N.plot,N.plot)
   D2=qgamma(d,2,1)
-  f2=function(x)prod(dgamma(x,2,1))
+  f2=function(x) prod(dgamma(x,2,1))
   p21=seq(0,6,length.out=N.plot)
   p22=seq(0,6,length.out=N.plot)
   fc2=matrix(apply(expand.grid(p21,p22),1,f2),N.plot,N.plot)

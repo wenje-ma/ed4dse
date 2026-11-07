@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/6.8-plot.RData")){
   library(MOFAT)
   f=function(x){

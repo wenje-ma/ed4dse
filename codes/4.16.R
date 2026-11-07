@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.16-plot.RData")){
   constraint=function(x){
     c1=(x[1]-sqrt(50*(x[2]-0.52)^2+2)+1)
@@ -21,7 +21,7 @@ if(!file.exists("data/4.16-plot.RData")){
   library(lhs)
   lhs.all=randomLHS(N,2)
   lhs.gval=t(apply(lhs.all,1,constraint))
-  lhs.out.idx=apply(lhs.gval,1,function(x)return(any(x>0)))
+  lhs.out.idx=apply(lhs.gval,1,function(x) return(any(x>0)))
   lhs.feasible=lhs.all[!lhs.out.idx,]
   n=20
   library(MaxPro)
@@ -34,11 +34,11 @@ load("data/4.16-plot.RData")
 draw=function(){
   par(mfrow=c(1,3))
   plot(all,col="green",pch=18,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="initial points")
-  for(i in 1:3)lines(x1[i,],x2[i,])
+  for(i in 1:3) lines(x1[i,],x2[i,])
   plot(feasible,col="red",pch=16,xlim=c(.3,.8),ylim=c(.35,.55),xlab=expression(x[1]),ylab=expression(x[2]),main="candidate points")
-  for(i in 1:3)lines(x1[i,],x2[i,])
+  for(i in 1:3) lines(x1[i,],x2[i,])
   plot(maxpro,col="blue",pch=16,xlim=c(.3,.8),ylim=c(.35,.55),xlab=expression(x[1]),ylab=expression(x[2]),main="MaxPro design")
-  for(i in 1:3)lines(x1[i,],x2[i,])
+  for(i in 1:3) lines(x1[i,],x2[i,])
 }
 pdf("../figures/4.16.pdf",width=12,height=4)
 draw()

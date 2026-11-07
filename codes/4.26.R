@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.26-plot.RData")){
   constraint=function(x){
     c1=(x[1]-sqrt(50*(x[2]-0.52)^2+2)+1)
@@ -18,11 +18,11 @@ if(!file.exists("data/4.26-plot.RData")){
   x1[3,]=sqrt(0.65^2-x2.seq^2)
   contour=list(x1=x1,x2=x2)
   logdis=function(x,s=2){
-    if(s>0)length(x)/s*log(sum(abs(x)^s)) else sum(log(abs(x)))
+    if(s>0) length(x)/s*log(sum(abs(x)^s)) else sum(log(abs(x)))
   }
   mined.seq=function(n,cand,cand.lf,s=2,return.obj=F){
     N=nrow(cand)
-    if(n>N)stop(message("Not enough candidate points!"))
+    if(n>N) stop(message("Not enough candidate points!"))
     p=ncol(cand)
     idx=which.max(cand.lf)
     xi=c(idx)
@@ -47,19 +47,19 @@ if(!file.exists("data/4.26-plot.RData")){
     min.ddist=Inf
     for(i in 1:p){
       ddist=min(dist(samp[,i]))
-      if(ddist<min.ddist)min.ddist=ddist
+      if(ddist<min.ddist) min.ddist=ddist
     }
     samp.gval=matrix(t(apply(samp,1,constraint)),nrow=nrow(samp))
     scale=rep(1,ncol(samp.gval))
-    if(auto.scale)scale=apply(samp.gval,2,mad,center=0)
-    samp.lf=apply(samp.gval,1,function(x)sum(pnorm(-tau[2]*x/scale,log.p=TRUE)))
+    if(auto.scale) scale=apply(samp.gval,2,mad,center=0)
+    samp.lf=apply(samp.gval,1,function(x) sum(pnorm(-tau[2]*x/scale,log.p=TRUE)))
     med.op=mined.seq(n,samp,samp.lf,s=s,return.obj=TRUE)
     samp.med=samp[med.op$idx,]
     if(visualization){
       vparams=list(unit.scale=FALSE,contour=NULL)
       vparams[(nm<-names(visualization.params))]=visualization.params
       xlim=ylim=NULL
-      if(vparams$unit.scale)xlim=ylim=c(0,1)
+      if(vparams$unit.scale) xlim=ylim=c(0,1)
       plot(samp,col="green",pch=18,xlim=xlim,ylim=ylim,xlab="",ylab="")
       points(samp.med,col="red",pch=16)
       if(!is.null(vparams$contour)){
@@ -95,8 +95,8 @@ if(!file.exists("data/4.26-plot.RData")){
         samp=rbind(samp,samp.aug)
         samp.gval=rbind(samp.gval,samp.aug.gval)
       }
-      if(auto.scale)scale=apply(samp.gval,2,mad,center=0)
-      samp.lf=apply(samp.gval,1,function(x)sum(pnorm(-tau[k]*x/scale,log.p=TRUE)))
+      if(auto.scale) scale=apply(samp.gval,2,mad,center=0)
+      samp.lf=apply(samp.gval,1,function(x) sum(pnorm(-tau[k]*x/scale,log.p=TRUE)))
       if(s==0){
         hp=floor(p/2)
         nl=sqrt((min.dist^2-min.ddist^2*hp)/(p-hp))
@@ -122,7 +122,7 @@ if(!file.exists("data/4.26-plot.RData")){
       }
     }
     samp.med.lf=samp.cand.lf[med.op$idx]
-    feasible.idx=!(apply(samp.gval,1,function(x)any(x>0)))
+    feasible.idx=!(apply(samp.gval,1,function(x) any(x>0)))
     return(list(med=samp.med,med.lf=samp.med.lf,cand=samp,cand.lf=samp.lf,cand.min.dist=min.dist,cand.min.ddist=min.ddist,feasible.idx=feasible.idx))
   }
   library(mined)
@@ -138,9 +138,9 @@ load("data/4.26-plot.RData")
 draw=function(){
   par(mfrow=c(1,2))
   plot(cand,col="blue",pch=16,xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="full candidate set")
-  for(i in 1:3)lines(x1[i,],x2[i,],col=2)
+  for(i in 1:3) lines(x1[i,],x2[i,],col=2)
   plot(feasible,col="green",pch=16,xlim=c(.3,.8),ylim=c(.35,.55),xlab=expression(x[1]),ylab=expression(x[2]),main="feasible candidate set")
-  for(i in 1:3)lines(x1[i,],x2[i,],col=2)
+  for(i in 1:3) lines(x1[i,],x2[i,],col=2)
 }
 pdf("../figures/4.26.pdf",width=8,height=4)
 draw()

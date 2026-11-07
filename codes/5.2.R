@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/5.2-plot.RData")){
   p=2;n=20
   set.seed(6)

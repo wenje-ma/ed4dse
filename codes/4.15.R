@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.15-plot.RData")){
   constraint=function(x){
     c1=(x[1]-sqrt(50*(x[2]-0.52)^2+2)+1)
@@ -22,7 +22,7 @@ if(!file.exists("data/4.15-plot.RData")){
 load("data/4.15-plot.RData")
 draw=function(){
   plot(NULL,type="n",xlim=c(0,1),ylim=c(0,1),xlab=expression(x[1]),ylab=expression(x[2]),main="feasible region")
-  for(i in 1:3)lines(x1[i,],x2[i,])
+  for(i in 1:3) lines(x1[i,],x2[i,])
   polygon(x=c(x1[1,383:536],x1[2,536:529],x1[3,529:412],x1[2,412:383]),y=c(x2[1,383:536],x2[2,536:529],x2[3,529:412],x2[2,412:383]),col="red")
 }
 pdf("../figures/4.15.pdf",width=4,height=4)

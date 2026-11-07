@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/9.3-plot.RData")){
   best=read.table(file="data/txts/run51.txt")$V1
   pdet=c(seq(0,5000,length=2001),seq(5000,120000,length.out=4601)[-1])

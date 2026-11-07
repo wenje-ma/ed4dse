@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/7.2-plot.RData")){
   library(rkriging)
   library(MaxPro)
@@ -24,11 +24,11 @@ if(!file.exists("data/7.2-plot.RData")){
     rmse=numeric(Nnew+1)
     for(i in 1:Nnew){
       CAND0=generate_sobol_set(100*p,p,seed=sample(10^6,1))
-      if(i==1)theta=rep(1,p)
+      if(i==1) theta=rep(1,p)
       kernel=Gaussian.Kernel(theta)
       obj1=Fit.Kriging(D,y,model="OK",kernel=kernel)
       obj2=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
-      if(obj1$get_nllh()<obj2$get_nllh())obj=obj1 else obj=obj2
+      if(obj1$get_nllh()<obj2$get_nllh()) obj=obj1 else obj=obj2
       theta=obj$get_lengthscale()
       pred=Predict.Kriging(obj,test)$mean
       rmse[i]=sqrt(mean((pred-truey)^2))
@@ -45,7 +45,7 @@ if(!file.exists("data/7.2-plot.RData")){
         }
         return(g)
       }
-      basis=function(h,theta)exp(-.5*sum((h/theta)^2))
+      basis=function(h,theta) exp(-.5*sum((h/theta)^2))
       opt=function(v,theta){
         a=r(v,theta)
         b=c(Rinv%*%a)
@@ -60,7 +60,7 @@ if(!file.exists("data/7.2-plot.RData")){
       dis=as.matrix(pdist(D,CAND0))
       N=dim(CAND0)[1]
       ind=NULL
-      for(ii in 1:n)ind=c(ind,(1:N)[dis[ii,]<d[ii]])
+      for(ii in 1:n) ind=c(ind,(1:N)[dis[ii,]<d[ii]])
       CAND=CAND0[-ind,]
       xnew=CAND[which.max(apply(CAND,1,opt,theta=theta)),]
       D=rbind(D,xnew)
@@ -70,7 +70,7 @@ if(!file.exists("data/7.2-plot.RData")){
     kernel=Gaussian.Kernel(theta)
     obj1=Fit.Kriging(D,y,model="OK",kernel=kernel)
     obj2=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
-    if(obj1$get_nllh()<obj2$get_nllh())obj=obj1 else obj=obj2
+    if(obj1$get_nllh()<obj2$get_nllh()) obj=obj1 else obj=obj2
     theta=obj$get_lengthscale()
     print(theta)
     pred=Predict.Kriging(obj,test)$mean

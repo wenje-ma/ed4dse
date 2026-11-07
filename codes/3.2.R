@@ -1,10 +1,10 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/3.2-plot.RData")){
   n=10
   theta=.1
-  r=function(x,D,theta)exp(-((x-D)/theta)^2)
+  r=function(x,D,theta) exp(-((x-D)/theta)^2)
   s=function(x,D,theta,L){
     a=forwardsolve(t(L),r(x,D,theta))
     return(sqrt(1-sum(a^2)))
@@ -13,7 +13,7 @@ if(!file.exists("data/3.2-plot.RData")){
     E=as.matrix(dist(D))
     R=exp(-(E/theta)^2)
     L=chol(R+10^(-6)*diag(n))
-    r=function(x)exp(-((x-D)/theta)^2)
+    r=function(x) exp(-((x-D)/theta)^2)
     s=function(x){
       a=forwardsolve(t(L),r(x))
       return(1-sum(a^2))
@@ -25,7 +25,7 @@ if(!file.exists("data/3.2-plot.RData")){
     E=as.matrix(dist(D))
     R=exp(-(E/theta)^2)
     L=chol(R+10^(-6)*diag(n))
-    r=function(x)exp(-((x-D)/theta)^2)
+    r=function(x) exp(-((x-D)/theta)^2)
     s=function(x){
       a=forwardsolve(t(L),r(x))
       return(1-sum(a^2))
@@ -40,7 +40,7 @@ if(!file.exists("data/3.2-plot.RData")){
   E=as.matrix(dist(D1))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa1=apply(cbind(test),1,function(xi)s(xi,D1,theta,L))
+  sa1=apply(cbind(test),1,function(xi) s(xi,D1,theta,L))
   imse1=imse(D1,theta,n)
   mmse1=mmse(D1,theta,n)
   d=cos((2*(1:n)-1)/(2*n)*pi)
@@ -48,7 +48,7 @@ if(!file.exists("data/3.2-plot.RData")){
   E=as.matrix(dist(D2))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa2=apply(cbind(test),1,function(xi)s(xi,D2,theta,L))
+  sa2=apply(cbind(test),1,function(xi) s(xi,D2,theta,L))
   imse2=imse(D2,theta,n)
   mmse2=mmse(D2,theta,n)
   D0=((1:n)-.5)/n
@@ -57,7 +57,7 @@ if(!file.exists("data/3.2-plot.RData")){
   E=as.matrix(dist(D3))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa3=apply(cbind(test),1,function(xi)s(xi,D3,theta,L))
+  sa3=apply(cbind(test),1,function(xi) s(xi,D3,theta,L))
   imse3=imse(D3,theta,n)
   mmse3=mmse(D3,theta,n)
   a=optim(D0,mmse,theta=theta,n=n,lower=rep(0,n),upper=rep(1,n),method="L-BFGS-B")
@@ -65,7 +65,7 @@ if(!file.exists("data/3.2-plot.RData")){
   E=as.matrix(dist(D4))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa4=apply(cbind(test),1,function(xi)s(xi,D4,theta,L))
+  sa4=apply(cbind(test),1,function(xi) s(xi,D4,theta,L))
   imse4=imse(D4,theta,n)
   mmse4=mmse(D4,theta,n)
   IMSE1=imse1;IMSE2=imse2;IMSE3=imse3;IMSE4=imse4

@@ -1,12 +1,12 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/7.6-plot.RData")){
   library(OSFD)
   library(MaxPro)
   f=function(x){
     y1=1/(x[1]^2+x[2]^2+.01)^(1/2)
-    if(x[2]==0)y2=0 else if(x[1]==0)y2=pi/2 else y2=atan(x[2]/x[1])
+    if(x[2]==0) y2=0 else if(x[1]==0) y2=pi/2 else y2=atan(x[2]/x[1])
     return(c(y1=y1,y2=y2))
   }
   set.seed(1)

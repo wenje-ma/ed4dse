@@ -28,7 +28,7 @@ continuous.optim=function(D.ini,objective,gradient=NULL,iteration=10,sa=FALSE,sa
     if(is.null(sa.objective)){
       warning("No sa objective is provided!")
     }
-    result=GenSA::GenSA(D1,function(x)sa.objective(x),lower=rep(0,n*p),upper=rep(1,n*p))
+    result=GenSA::GenSA(D1,function(x) sa.objective(x),lower=rep(0,n*p),upper=rep(1,n*p))
     D1=matrix(result$par,ncol=p)
   }
   return(D1)

@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/9.1-plot.RData")){
   library(rkriging)
   library(FNN)
@@ -22,7 +22,7 @@ if(!file.exists("data/9.1-plot.RData")){
   M=length(pdet)
   filename=paste(paste("data/txts/run",sep="",1:50),sep="",".txt")
   Y=matrix(0,nrow=N,ncol=M)
-  for(i in 1:N)Y[i,]=read.table(file=filename[i])$V1
+  for(i in 1:N) Y[i,]=read.table(file=filename[i])$V1
   tsamp=seq(0,max(pdet),length=1001)
   Ysamp=Y[,1:1001]
   for(i in 1:N){
@@ -32,12 +32,12 @@ if(!file.exists("data/9.1-plot.RData")){
   tsamp01=tsamp/max(tsamp)
   r.x=function(u,theta.x){
     A=t(t(D1)-u)
-    basis.x=function(h)exp(-sum((h/theta.x)^2))
+    basis.x=function(h) exp(-sum((h/theta.x)^2))
     vec=apply(A,1,basis.x)
     return(vec)
   }
   r.t=function(v,theta.t){
-    basis.t=function(h)exp(-abs(h/theta.t))
+    basis.t=function(h) exp(-abs(h/theta.t))
     vec=basis.t(v-tsamp01)
     return(vec)
   }
@@ -79,7 +79,7 @@ if(!file.exists("data/9.1-plot.RData")){
   Rx=apply(D1,1,r.x,theta=theta.x)
   A=solve(Rx+10^(-6)*diag(N))
   Rxinv=A
-  for(i in 1:3)Rxinv=A%*%(diag(N)+10^(-6)*Rxinv)
+  for(i in 1:3) Rxinv=A%*%(diag(N)+10^(-6)*Rxinv)
   rho=exp(-1/((M-1)*theta.t))
   Rtinv=Rtinv.mat(rho)
   a=c(t((Rxinv%*%rep(1,N))%*%(t(rep(1,M))%*%Rtinv)))
@@ -88,12 +88,12 @@ if(!file.exists("data/9.1-plot.RData")){
   sigma2=1/(M*N)*sum((c(t(Ysamp))-mu)*(b-mu*a))
   coef=c(b-mu*a)
   COEF=matrix(coef,nrow=N,ncol=M,byrow=TRUE)
-  hhat=function(ti,eta)drop(mu+t(r.x(eta,theta.x)%*%COEF%*%r.t(ti,theta.t)))
+  hhat=function(ti,eta) drop(mu+t(r.x(eta,theta.x)%*%COEF%*%r.t(ti,theta.t)))
   fim=function(x,w,param){
     S=matrix(0,nrow=m,ncol=q)
     X=matrix(x,nrow=m)
     for(i in 1:m){
-      heta=function(eta)hhat(X[i,],eta)
+      heta=function(eta) hhat(X[i,],eta)
       S[i,]=grad(heta,x=param)
     }
     M=t(S)%*%diag(w)%*%S

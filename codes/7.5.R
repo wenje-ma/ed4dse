@@ -1,10 +1,10 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/7.5-plot.RData")){
   library(rkriging)
   set.seed(1)
-  f=function(x)sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
   EI=function(x,hmin,obj){
     pred=Predict.Kriging(obj,cbind(x))
     s=max(pred$sd,10^(-10))

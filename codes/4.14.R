@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.14-plot.RData")){
   branin=function(x){
     x1=x[1]*15-5
@@ -33,7 +33,7 @@ if(!file.exists("data/4.14-plot.RData")){
   p2=seq(0,1,length=N.plot)
   fc=matrix(0,N.plot,N.plot)
   for(i in 1:N.plot){
-    for(j in 1:N.plot)fc[i,j]=branin(c(p1[i],p2[j]))
+    for(j in 1:N.plot) fc[i,j]=branin(c(p1[i],p2[j]))
   }
   save(fc,p1,p2,rmse,D,A,rmse0,file="data/4.14-plot.RData")
 }

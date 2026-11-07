@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/6.4-plot.RData")){
   set.seed(10)
   par(mfrow=c(1,2))
@@ -10,19 +10,19 @@ if(!file.exists("data/6.4-plot.RData")){
   C11=C12=A
   for(i in 1:4){
     C11[i,1]=A[i,1]+delta
-    if(C11[i,1]<0||C11[i,1]>1)C11[i,1]=A[i,1]-delta
+    if(C11[i,1]<0||C11[i,1]>1) C11[i,1]=A[i,1]-delta
     C12[i,1]=C11[i,1]
     C12[i,2]=C11[i,2]+delta
-    if(C12[i,2]<0||C12[i,2]>1)C12[i,2]=C11[i,2]-delta
+    if(C12[i,2]<0||C12[i,2]>1) C12[i,2]=C11[i,2]-delta
   }
   D=rbind(A,C11,C12)
   dim(unique(D))[1]
   C21=C22=A
   for(i in 1:4){
     C21[i,1]=A[i,1]+delta
-    if(C21[i,1]<0||C21[i,1]>1)C21[i,1]=A[i,1]-delta
+    if(C21[i,1]<0||C21[i,1]>1) C21[i,1]=A[i,1]-delta
     C22[i,2]=C21[i,2]+delta
-    if(C22[i,2]<0||C22[i,2]>1)C22[i,2]=C21[i,2]-delta
+    if(C22[i,2]<0||C22[i,2]>1) C22[i,2]=C21[i,2]-delta
   }
   D=rbind(A,C21,C22)
   dim(unique(D))[1]

@@ -1,8 +1,8 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/2.1-plot.RData")){
-  f=function(x)sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
   test=seq(0,1,length=301)
   true=f(test)
   n=10
@@ -10,24 +10,24 @@ if(!file.exists("data/2.1-plot.RData")){
   y1=f(D1)
   d=2*D1-1
   X=NULL
-  for(i in 1:n)X=cbind(X,cos((i-1)*acos(d)))
+  for(i in 1:n) X=cbind(X,cos((i-1)*acos(d)))
   a=solve(X,y1)
   u=seq(0,1,length=301)
   yhat1=u;us=2*u-1
   for(i in 1:301){
     yhat1[i]=0
-    for(j in 1:n)yhat1[i]=yhat1[i]+a[j]*cos((j-1)*acos(us[i]))
+    for(j in 1:n) yhat1[i]=yhat1[i]+a[j]*cos((j-1)*acos(us[i]))
   }
   d=cos((2*(1:n)-1)/(2*n)*pi)
   D2=(d+1)/2
   y2=f(D2)
   X=NULL
-  for(i in 1:n)X=cbind(X,cos((i-1)*acos(d)))
+  for(i in 1:n) X=cbind(X,cos((i-1)*acos(d)))
   a=solve(X,y2)
   yhat2=u;us=2*u-1
   for(i in 1:301){
     yhat2[i]=0
-    for(j in 1:n)yhat2[i]=yhat2[i]+a[j]*cos((j-1)*acos(us[i]))
+    for(j in 1:n) yhat2[i]=yhat2[i]+a[j]*cos((j-1)*acos(us[i]))
   }
   save(D1,y1,D2,y2,test,true,yhat1,yhat2,file="data/2.1-plot.RData")
 }

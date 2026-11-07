@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/1.4-plot.RData")){
   x=seq(0,1,length=301)
   n=15
@@ -8,7 +8,7 @@ if(!file.exists("data/1.4-plot.RData")){
   y1=sin(10*pi*x)/(1+64*(x-.5)^2)
   D2=qbeta(((1:n)-.5)/n,.5,.5)
   y2=1/(1+64*(x-.5)^2)
-  n1=n*2/3; n2=n/3
+  n1=n*2/3;n2=n/3
   D0=((1:n2)-.5)/n2
   D3=c(D0,qbeta(((1:n1)-.5)/n1,2,10))
   y3=2/3*dbeta(x,2,10)+1/3*dbeta(x,10,2)

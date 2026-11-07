@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/5.5-plot.RData")){
   p=2;n=50;N.plot=300
   set.seed(6)
@@ -11,7 +11,7 @@ if(!file.exists("data/5.5-plot.RData")){
   x2=qnorm(d[,2],mean=.5*x1,sd=sqrt(1-.5^2))
   D=cbind(x1,x2)
   colnames(D)=c("x1","x2")
-  f=function(x)dmnorm(x,mean=c(0,0),varcov=matrix(c(1,.5,.5,1),2,2))
+  f=function(x) dmnorm(x,mean=c(0,0),varcov=matrix(c(1,.5,.5,1),2,2))
   p1=seq(-3,3,length.out=N.plot)
   p2=seq(-3,3,length.out=N.plot)
   fc=matrix(apply(expand.grid(p1,p2),1,f),N.plot,N.plot)

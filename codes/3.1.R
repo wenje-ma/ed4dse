@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/3.1-plot.RData")){
   p=2
   n=7
@@ -11,9 +11,9 @@ if(!file.exists("data/3.1-plot.RData")){
   for(i in 1:3){
     set.seed(ind[i])
     D=matrix(runif(n*p),nrow=n,ncol=p)
-    if(i==1)D1=D
-    if(i==2)D2=D
-    if(i==3)D3=D
+    if(i==1) D1=D
+    if(i==2) D2=D
+    if(i==3) D3=D
   }
   save(D1,D2,D3,file="data/3.1-plot.RData")
 }

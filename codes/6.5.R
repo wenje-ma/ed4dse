@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/6.5-plot.RData")){
   library(sensitivity)
   f=function(x){
@@ -10,15 +10,15 @@ if(!file.exists("data/6.5-plot.RData")){
     val=2*pi*x[3]*(x[4]-x[6])/(log(x[2]/x[1])*(1+2*x[7]*x[3]/(log(x[2]/x[1])*x[1]^2*x[8])+x[3]/x[5]))
     return(val)
   }
-  borehole=function(X)apply(X,1,f)
+  borehole=function(X) apply(X,1,f)
   set.seed(1)
   a=morris(model=borehole,factors=8,r=4,design=list(type="oat",levels=4,grid.jump=2))
-  mu=abs(apply(a$ee,2,function(x)mean(x)))
+  mu=abs(apply(a$ee,2,function(x) mean(x)))
   sigma=apply(a$ee,2,sd)
   mustar=matrix(0,nrow=100,ncol=8)
   for(i in 1:100){
     am=morris(model=borehole,factors=8,r=4,design=list(type="oat",levels=4,grid.jump=2))
-    mustar[i,]=apply(am$ee,2,function(x)mean(abs(x)))
+    mustar[i,]=apply(am$ee,2,function(x) mean(abs(x)))
   }
   lab=paste("x",sep="",1:8)
   colnames(mustar)=lab

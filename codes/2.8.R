@@ -1,8 +1,8 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/2.8-plot.RData")){
-  f=function(x)sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
   test=seq(0,1,length=301)
   true=f(test)
   set.seed(5)
@@ -26,16 +26,16 @@ if(!file.exists("data/2.8-plot.RData")){
     cv=c(Rinv%*%y)/mean(diag(Rinv))
     log(mean(cv^2))
   }
-  a=optim(c(.1,.1),function(pa)MSCV(pa,E1,y1),lower=c(.05,.001),upper=c(1,1),method="L-BFGS-B")
+  a=optim(c(.1,.1),function(pa) MSCV(pa,E1,y1),lower=c(.05,.001),upper=c(1,1),method="L-BFGS-B")
   theta1=a$par[1];lam1=a$par[2]
   R=exp(-(E1/theta1)^2)
   coef=solve(R+lam1*diag(n*re),y1)
-  basis=function(h)exp(-(h/theta1)^2)
-  r=function(x)basis(x-D1)
-  fhat=function(x)sum(r(x)*coef)
+  basis=function(h) exp(-(h/theta1)^2)
+  r=function(x) basis(x-D1)
+  fhat=function(x) sum(r(x)*coef)
   pred1=test
-  for(i in 1:301)pred1[i]=fhat(test[i])
-  a=optim(c(.1,.1),function(pa)GCV(pa,E1,y1),lower=c(.05,.001),upper=c(1,1),method="L-BFGS-B")
+  for(i in 1:301) pred1[i]=fhat(test[i])
+  a=optim(c(.1,.1),function(pa) GCV(pa,E1,y1),lower=c(.05,.001),upper=c(1,1),method="L-BFGS-B")
   theta2=a$par[1];lam2=a$par[2]
   library(AlgDesign)
   cand=data.frame(x=seq(-1,1,length=301))
@@ -44,15 +44,15 @@ if(!file.exists("data/2.8-plot.RData")){
   D2=(D2+1)/2
   y2=f(D2)+e
   E2=as.matrix(dist(D2))
-  a=optim(c(.1,.1),function(pa)MSCV(pa,E2,y2),lower=c(.05,.001),upper=c(1,1),method="L-BFGS-B")
+  a=optim(c(.1,.1),function(pa) MSCV(pa,E2,y2),lower=c(.05,.001),upper=c(1,1),method="L-BFGS-B")
   theta3=a$par[1];lam3=a$par[2]
   R=exp(-(E2/theta3)^2)
   coef=solve(R+lam3*diag(n*re),y2)
-  basis=function(h)exp(-(h/theta3)^2)
-  r=function(x)basis(x-D2)
-  fhat=function(x)sum(r(x)*coef)
+  basis=function(h) exp(-(h/theta3)^2)
+  r=function(x) basis(x-D2)
+  fhat=function(x) sum(r(x)*coef)
   pred2=test
-  for(i in 1:301)pred2[i]=fhat(test[i])
+  for(i in 1:301) pred2[i]=fhat(test[i])
   save(D1,y1,D2,y2,test,true,pred1,pred2,file="data/2.8-plot.RData")
 }
 load("data/2.8-plot.RData")

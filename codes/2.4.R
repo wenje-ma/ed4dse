@@ -1,8 +1,8 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/2.4-plot.RData")){
-  f=function(x)sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
   test=seq(0,1,length=301)
   true=f(test)
   n=10
@@ -11,8 +11,8 @@ if(!file.exists("data/2.4-plot.RData")){
   E=as.matrix(dist(D))
   theta=.08
   R=exp(-(E/theta)^2)
-  basis=function(h)exp(-(h/theta)^2)
-  r=function(x)basis(x-D)
+  basis=function(h) exp(-(h/theta)^2)
+  r=function(x) basis(x-D)
   one=rep(1,n)
   Rinv=solve(R+10^(-10)*diag(n))
   mu=drop(t(one)%*%Rinv%*%y/(t(one)%*%Rinv%*%one))
@@ -23,7 +23,7 @@ if(!file.exists("data/2.4-plot.RData")){
     val=tau2*(1-t(r(x))%*%Rinv%*%r(x)+fac*(1-t(r(x))%*%Rinv%*%one)^2)
     return(val)
   }
-  fhat=function(x)mu+t(r(x))%*%coef
+  fhat=function(x) mu+t(r(x))%*%coef
   N=301
   pred=low=up=numeric(N)
   for(i in 1:N){

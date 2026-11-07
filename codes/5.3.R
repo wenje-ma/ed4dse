@@ -1,10 +1,10 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/5.3-plot.RData")){
   set.seed(1)
   p=2
-  h=function(x)exp(-sum((x-.5)^2))
+  h=function(x) exp(-sum((x-.5)^2))
   n=seq(10,100,by=10)
   randw=sobw=uniw=matrix(0,nrow=10,ncol=30)
   rand=sob=uni=matrix(0,nrow=10,ncol=30)

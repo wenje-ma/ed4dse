@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/3.4-plot.RData")){
   set.seed(1)
   n=10
@@ -11,7 +11,7 @@ if(!file.exists("data/3.4-plot.RData")){
     E=as.matrix(dist(D))
     R=exp(-(E/theta)^2)
     L=chol(R+10^(-6)*diag(n))
-    r=function(x)exp(-((x-D)/theta)^2)
+    r=function(x) exp(-((x-D)/theta)^2)
     s=function(x){
       a=forwardsolve(t(L),r(x))
       return(1-sum(a^2))
@@ -23,7 +23,7 @@ if(!file.exists("data/3.4-plot.RData")){
     E=as.matrix(dist(D))
     R=exp(-(E/theta)^2)
     L=chol(R+10^(-6)*diag(n))
-    r=function(x)exp(-((x-D)/theta)^2)
+    r=function(x) exp(-((x-D)/theta)^2)
     s=function(x){
       a=forwardsolve(t(L),r(x))
       return(1-sum(a^2))
@@ -32,7 +32,7 @@ if(!file.exists("data/3.4-plot.RData")){
     val=apply(cbind(test),1,s)
     return(max(val))
   }
-  r=function(x,D,theta)exp(-((x-D)/theta)^2)
+  r=function(x,D,theta) exp(-((x-D)/theta)^2)
   s=function(x,D,theta,L){
     a=forwardsolve(t(L),r(x,D,theta))
     return(sqrt(max(1-sum(a^2),0)))
@@ -50,7 +50,7 @@ if(!file.exists("data/3.4-plot.RData")){
   E=as.matrix(dist(D3))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa3=apply(cbind(test),1,function(xi)s(xi,D3,theta,L))
+  sa3=apply(cbind(test),1,function(xi) s(xi,D3,theta,L))
   Ent3=ent(D3,theta)
   IMSE3=imse(D3,theta,n)
   MMSE3=mmse(D3,theta,n)
@@ -59,7 +59,7 @@ if(!file.exists("data/3.4-plot.RData")){
   E=as.matrix(dist(D4))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa4=apply(cbind(test),1,function(xi)s(xi,D4,theta,L))
+  sa4=apply(cbind(test),1,function(xi) s(xi,D4,theta,L))
   Ent4=ent(D4,theta)
   IMSE4=imse(D4,theta,n)
   MMSE4=mmse(D4,theta,n)
@@ -69,7 +69,7 @@ if(!file.exists("data/3.4-plot.RData")){
   E=as.matrix(dist(D5))
   R=exp(-(E/theta)^2)
   L=chol(R+10^(-6)*diag(n))
-  sa5=apply(cbind(test),1,function(xi)s(xi,D5,theta,L))
+  sa5=apply(cbind(test),1,function(xi) s(xi,D5,theta,L))
   Ent5=ent(D5,theta)
   IMSE5=imse(D5,theta,n)
   MMSE5=mmse(D5,theta,n)

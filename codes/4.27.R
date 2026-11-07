@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.27-plot.RData")){
   f=function(u){
     x=u[1:2]
@@ -36,7 +36,7 @@ if(!file.exists("data/4.27-plot.RData")){
   true=apply(cbind(test,0),1,f)
   OKfit=function(D,y,ini,nug=10^(-6)){
     n=length(y)
-    if(!is.matrix(D))D=matrix(D,ncol=1)
+    if(!is.matrix(D)) D=matrix(D,ncol=1)
     p=dim(D)[2]-1
     r=function(x,theta){
       theta0=theta[1:p]

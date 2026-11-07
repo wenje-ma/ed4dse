@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/5.9-plot.RData")){
   source("data/lib.r")
   library(mvtnorm)
@@ -20,7 +20,7 @@ if(!file.exists("data/5.9-plot.RData")){
     sigma[4,,]=matrix(c(3,0,0,0.5),nrow=2)/40^2
     sigma[5,,]=matrix(c(2,-0.1,-0.1,2),nrow=2)/40^2
     logf=rep(0,5)
-    for(i in 1:5)logf[i]=dmvnorm(x,mean=v[i,],sigma=sigma[i,,],log=TRUE)
+    for(i in 1:5) logf[i]=dmvnorm(x,mean=v[i,],sigma=sigma[i,,],log=TRUE)
     logaddexp(logf)-log(5)
   }
   x1=x2=seq(0,1,length.out=101)

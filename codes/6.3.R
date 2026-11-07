@@ -1,16 +1,16 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/6.3-plot.RData")){
   library(SFDesign)
   library(sensitivity)
   p=4
   f=function(x){
     val=0
-    for(k in 1:4)val=val+sin((k^2+1)*pi*x[k])/k
+    for(k in 1:4) val=val+sin((k^2+1)*pi*x[k])/k
     return(val)
   }
-  f1=function(X)apply(X,1,f)
+  f1=function(X) apply(X,1,f)
   X=uniformLHD(10*p,p)$design
   a=delsa(model=f1,X0=X,varprior=rep(1,p))
   nu=colMeans(a$deriv^2)
@@ -26,7 +26,7 @@ load("data/6.3-plot.RData")
 draw=function(){
   par(mfrow=c(1,2))
   curve(sin(2*pi*x),from=0,to=1,ylab="y")
-  for(k in 2:4)curve(sin((k^2+1)*pi*x)/k,from=0,to=1,add=TRUE,col=k,lty=1)
+  for(k in 2:4) curve(sin((k^2+1)*pi*x)/k,from=0,to=1,add=TRUE,col=k,lty=1)
   legend("topright",legend=paste("x",sep="",1:4),col=1:4,lty=1,bty="n")
   plot(1:4,tot,col="blue",axes="F",pch=16,xlab="",ylab="sensitivity measure",main="Variance-based vs Derivative-based")
   axis(1,at=1:4,labels=paste("x",sep="",1:4))

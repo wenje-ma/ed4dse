@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/3.3-plot.RData")){
   n=10
   theta=.1
@@ -8,7 +8,7 @@ if(!file.exists("data/3.3-plot.RData")){
     E=as.matrix(dist(D))
     R=exp(-(E/theta)^2)
     L=chol(R+10^(-6)*diag(n))
-    r=function(x)exp(-((x-D)/theta)^2)
+    r=function(x) exp(-((x-D)/theta)^2)
     s=function(x){
       a=forwardsolve(t(L),r(x))
       return(1-sum(a^2))
@@ -20,7 +20,7 @@ if(!file.exists("data/3.3-plot.RData")){
     E=as.matrix(dist(D))
     R=exp(-(E/theta)^2)
     L=chol(R+10^(-6)*diag(n))
-    r=function(x)exp(-((x-D)/theta)^2)
+    r=function(x) exp(-((x-D)/theta)^2)
     s=function(x){
       a=forwardsolve(t(L),r(x))
       return(1-sum(a^2))

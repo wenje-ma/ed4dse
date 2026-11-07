@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/6.1-plot.RData")){
   f=function(x){
     lower=c(0.05,100,63070,990,63.1,700,1120,9855)
@@ -15,7 +15,7 @@ if(!file.exists("data/6.1-plot.RData")){
   m=10000
   A=matrix(runif(m*p),nrow=m)
   B=matrix(runif(m*p),nrow=m)
-  borehole=function(X)apply(X,1,f)
+  borehole=function(X) apply(X,1,f)
   a.sen=soboljansen(model=borehole,X1=data.frame(A),X2=data.frame(B))
   print(a.sen)
   sf=pmax(unlist(a.sen$S),0)
@@ -30,7 +30,7 @@ if(!file.exists("data/6.1-plot.RData")){
   D=maxpro.optim(maxproLHD(n,p)$design)$design
   y=apply(D,1,f)
   a.fit=Fit.Kriging(D,y,kernel.parameters=list(type="Gaussian"))
-  fhat=function(x,fit)Predict.Kriging(fit,matrix(x,ncol=p))$mean
+  fhat=function(x,fit) Predict.Kriging(fit,matrix(x,ncol=p))$mean
   N=10*p
   D.eval=uniformLHD(N,p)$design
   f.eval=apply(D.eval,1,fhat,a.fit)
@@ -46,7 +46,7 @@ if(!file.exists("data/6.1-plot.RData")){
     return(val-f0)
   }
   M=matrix(0,nrow=20,ncol=p)
-  for(j in 1:4)M[,j]=main.effect(j)
+  for(j in 1:4) M[,j]=main.effect(j)
   save(x,x.ev,M,file="data/6.1-plot.RData")
 }
 load("data/6.1-plot.RData")

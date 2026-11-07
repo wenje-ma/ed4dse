@@ -1,15 +1,15 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/9.4-plot.RData")){
   library(support)
   sp.sample=function(x,n,prob,tol=1e-6,iter.max=10){
-    if(is.null(dim(x)))stop("x must be a matrix!")
+    if(is.null(dim(x))) stop("x must be a matrix!")
     N=nrow(x)
     x.dist=as.matrix(dist(x))
     x.measure=c(x.dist%*%prob)
     idx=c(which.min(x.measure))
-    if(prob[idx[1]]<1/N)idx[1]=which.max(prob)
+    if(prob[idx[1]]<1/N) idx[1]=which.max(prob)
     for(i in 2:n){
       measure=x.measure-apply(matrix(x.dist[,idx],ncol=(i-1)),1,sum)/i
       idx=c(idx,which.min(measure))

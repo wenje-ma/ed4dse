@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/6.2-plot.RData")){
   library(SFDesign)
   library(sensitivity)
@@ -12,7 +12,7 @@ if(!file.exists("data/6.2-plot.RData")){
     val=2*pi*x[3]*(x[4]-x[6])/(log(x[2]/x[1])*(1+2*x[7]*x[3]/(log(x[2]/x[1])*x[1]^2*x[8])+x[3]/x[5]))
     return(val)
   }
-  borehole=function(X)apply(X,1,f)
+  borehole=function(X) apply(X,1,f)
   p=8;m=4
   nu=matrix(0,nrow=100,ncol=p)
   for(i in 1:100){

@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.25-plot.RData")){
   logf=function(para){
     l1=-40
@@ -13,7 +13,7 @@ if(!file.exists("data/4.25-plot.RData")){
     return(val)
   }
   nlogh=function(para)-logf(para)
-  h=function(para)exp(-nlogh(para))
+  h=function(para) exp(-nlogh(para))
   target=function(para).5*logf(para)
   N.plot=300
   p1=seq(0,1,length.out=N.plot)
@@ -33,7 +33,7 @@ if(!file.exists("data/4.25-plot.RData")){
     A=as.matrix(dist(A,diag=TRUE,upper=TRUE))
     return(exp(-.5*A^2))
   }
-  exp1=function(e)exp(-.5*sum(e^2/sigma2))
+  exp1=function(e) exp(-.5*sum(e^2/sigma2))
   g=function(gamma){
     A=t(t(nu)-gamma)
     vec=apply(A,1,exp1)
@@ -62,7 +62,7 @@ if(!file.exists("data/4.25-plot.RData")){
   Sigma.inv=diag(1/sigma2)
   m=dim(nu)[1]
   M=array(0,dim=c(m,m,p))
-  for(k in 1:p)M[,,k]=outer(nu[,k],nu[,k],"+")/2
+  for(k in 1:p) M[,,k]=outer(nu[,k],nu[,k],"+")/2
   d=outer(c(coef),c(coef),"*")*G2
   denk=function(theta,k){
     num=sum(d*dnorm(theta,M[,,k],s[k]/sqrt(2)))
@@ -70,10 +70,10 @@ if(!file.exists("data/4.25-plot.RData")){
   }
   den=matrix(0,nrow=N.plot,ncol=p)
   v=cbind(p1,p2)
-  for(k in 1:p)den[,k]=apply(cbind(v[,k]),1,denk,k=k)
+  for(k in 1:p) den[,k]=apply(cbind(v[,k]),1,denk,k=k)
   library(cubature)
   denom=adaptIntegrate(h,c(0,0),c(1,1))$int
-  h1=function(theta1)apply(cbind(theta1,theta2),1,h)
+  h1=function(theta1) apply(cbind(theta1,theta2),1,h)
   val=p2
   for(i in 1:N.plot){
     theta2=p2[i]
@@ -81,7 +81,7 @@ if(!file.exists("data/4.25-plot.RData")){
   }
   exact=matrix(0,nrow=N.plot,ncol=p)
   exact[,2]=val/denom
-  h2=function(theta2)apply(cbind(theta1,theta2),1,h)
+  h2=function(theta2) apply(cbind(theta1,theta2),1,h)
   val=p1
   for(i in 1:N.plot){
     theta1=p1[i]

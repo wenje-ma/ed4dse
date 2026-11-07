@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/4.19-plot.RData")){
   library(SFDesign)
   library(MaxPro)
@@ -15,7 +15,7 @@ if(!file.exists("data/4.19-plot.RData")){
     D1=D0[1:15,-9]
     D2=D0[16:30,-9]
     for(i in 1:7){
-      for(j in (i+1):8){
+      for(j in(i+1):8){
         B=D2
         B[,c(i,j)]=na_nested
         A=D1
@@ -38,7 +38,7 @@ if(!file.exists("data/4.19-plot.RData")){
   D1=D0[1:15,-9]
   D2=D0[16:30,-9]
   for(i in 1:7){
-    for(j in (i+1):8){
+    for(j in(i+1):8){
       B=D2
       B[,c(i,j)]=na_nested
       A=D1

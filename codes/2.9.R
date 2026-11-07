@@ -1,9 +1,9 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 if(!file.exists("data/2.9-plot.RData")){
   library(rkriging)
-  f=function(x)sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
+  f=function(x) sin(10*pi*x)/(1+64*(x-.25)^2)+x^2
   test=seq(0,1,length=301)
   true=f(test)
   set.seed(5)

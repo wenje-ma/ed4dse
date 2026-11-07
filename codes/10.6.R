@@ -1,6 +1,6 @@
 setwd("D:/wenje-ma/ED4DSE/codes")
-if(!dir.exists("data"))dir.create("data")
-if(!dir.exists("../figures"))dir.create("../figures")
+if(!dir.exists("data")) dir.create("data")
+if(!dir.exists("../figures")) dir.create("../figures")
 library(fields)
 library(deldir)
 if(!file.exists("data/10.6-plot.RData")){
@@ -16,7 +16,7 @@ if(!file.exists("data/10.6-plot.RData")){
   p=2
   N=10000*p
   x=NULL
-  for(i in 1:p)x=cbind(x,runif(N))
+  for(i in 1:p) x=cbind(x,runif(N))
   y=apply(x,1,f)+.01*rnorm(N)
   n=200
   true=apply(x,1,f)
